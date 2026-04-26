@@ -7,58 +7,58 @@ export function usePills() {
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
 
-  // Cargar el secret code y pastillas iniciales de LocalStorage
+  // Cargar inicial y sincronizar
   useEffect(() => {
     const code = localStorage.getItem('pillapp_secret');
     if (code) {
       setSecretCode(code);
-      const saved = localStorage.getItem(`pillapp_pills_${code}`);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.every(p => p && typeof p === 'object' && 'id' in p)) {
-            setPills(parsed);
-          } else {
-            localStorage.removeItem(`pillapp_pills_${code}`);
-          }
-        } catch (e) {
-          localStorage.removeItem(`pillapp_pills_${code}`);
+      
+      const loadAndSync = async () => {
+        setLoading(true);
+        
+        // 1. Cargar lo que haya en LocalStorage primero (Caché rápida)
+        let localPills: Pill[] = [];
+        const saved = localStorage.getItem(`pillapp_pills_${code}`);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed)) {
+              localPills = parsed;
+              setPills(localPills);
+            }
+          } catch (e) {}
         }
-      }
-    }
-  }, []);
 
-  // Fetch pills para actualizar la caché
-  useEffect(() => {
-    if (!secretCode) return;
-
-    const fetchPills = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/pills?user=${secretCode}`);
-        if (res.ok) {
-          const contentType = res.headers.get("content-type");
-          if (contentType && contentType.includes("application/json")) {
+        // 2. Intentar traer de la nube
+        try {
+          const res = await fetch(`/api/pills?user=${code}`);
+          if (res.ok) {
             const cloudData = await res.json();
-            if (cloudData && Array.isArray(cloudData)) {
+            if (Array.isArray(cloudData)) {
               if (cloudData.length > 0) {
+                // La nube manda
                 setPills(cloudData);
-                localStorage.setItem(`pillapp_pills_${secretCode}`, JSON.stringify(cloudData));
-              } else if (pills.length > 0) {
-                syncPills(pills);
+                localStorage.setItem(`pillapp_pills_${code}`, JSON.stringify(cloudData));
+              } else if (localPills.length > 0) {
+                // Nube vacía pero local tiene algo -> Sincronizar hacia arriba
+                await fetch('/api/pills', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ user: code, pills: localPills }),
+                });
               }
             }
           }
+        } catch (err) {
+          console.error('Error en sincronización inicial:', err);
+        } finally {
+          setLoading(false);
         }
-      } catch (err) {
-        console.error('Error fetching pills (offline?):', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+      };
 
-    fetchPills();
-  }, [secretCode]);
+      loadAndSync();
+    }
+  }, [secretCode]); // Se dispara cuando cambia el código (login/logout)
 
   const saveSecretCode = (code: string, name?: string) => {
     localStorage.setItem('pillapp_secret', code);
