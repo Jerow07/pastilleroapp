@@ -17,35 +17,47 @@ export function usePills() {
       const loadAndSync = async () => {
         setLoading(true);
         
-        // 1. Cargar lo que haya en LocalStorage primero (Caché rápida)
+        // 1. Cargar LocalStorage
         let localPills: Pill[] = [];
         const saved = localStorage.getItem(`pillapp_pills_${code}`);
         if (saved) {
           try {
             const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed)) {
-              localPills = parsed;
-              setPills(localPills);
-            }
+            if (Array.isArray(parsed)) localPills = parsed;
           } catch (e) {}
         }
+        setPills(localPills);
 
-        // 2. Intentar traer de la nube
+        // 2. Traer de la nube y MERGE
         try {
           const res = await fetch(`/api/pills?user=${code}`);
           if (res.ok) {
             const cloudData = await res.json();
             if (Array.isArray(cloudData)) {
-              if (cloudData.length > 0) {
-                // La nube manda
-                setPills(cloudData);
-                localStorage.setItem(`pillapp_pills_${code}`, JSON.stringify(cloudData));
-              } else if (localPills.length > 0) {
-                // Nube vacía pero local tiene algo -> Sincronizar hacia arriba
+              // Mezclamos por ID para no perder nada de ningún dispositivo
+              const mergedMap = new Map();
+              
+              // Primero metemos lo local
+              localPills.forEach(p => mergedMap.set(p.id, p));
+              
+              // Luego metemos lo de la nube (si el ID ya existe, la nube manda porque suele ser lo más reciente)
+              cloudData.forEach(p => {
+                const existing = mergedMap.get(p.id);
+                if (!existing || (p.takenDates.length >= existing.takenDates.length)) {
+                  mergedMap.set(p.id, p);
+                }
+              });
+
+              const mergedPills = Array.from(mergedMap.values());
+              setPills(mergedPills);
+              localStorage.setItem(`pillapp_pills_${code}`, JSON.stringify(mergedPills));
+
+              // Si el resultado de la mezcla es distinto a lo que había en la nube, sincronizamos "para arriba"
+              if (mergedPills.length !== cloudData.length) {
                 await fetch('/api/pills', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ user: code, pills: localPills }),
+                  body: JSON.stringify({ user: code, pills: mergedPills }),
                 });
               }
             }
