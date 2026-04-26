@@ -288,21 +288,22 @@ export function Dashboard({
 
   return (
     <div className={cn(
-      "h-auto w-full font-sans bg-[url('/bg.png')] bg-cover bg-center py-12 px-4 scroll-smooth"
+      "h-screen md:h-screen w-full font-sans flex flex-col items-center justify-center p-0 md:p-8 overflow-hidden",
+      "bg-[url('/bg.png')] bg-cover bg-center bg-fixed"
     )}>
       {/* Recuadro de la App - Estilo Redondeado Premium */}
       <div className={cn(
-        "mx-auto w-full max-w-md relative transition-all duration-500 shadow-[0_0_80px_rgba(0,0,0,0.4)] z-10",
-        "rounded-[3rem] border-4 border-white/20 bg-clip-border",
+        "w-full max-w-md h-full md:h-[min(850px,95vh)] flex flex-col relative transition-all duration-500 shadow-[0_0_80px_rgba(0,0,0,0.4)] z-10",
+        "md:rounded-[3rem] md:border-4 md:border-white/20 overflow-hidden",
         darkMode ? "bg-[#0c141d]/95 text-white" : "bg-[#f0f9ff]/95 text-slate-900"
       )}>
         {/* Header */}
         <header className={cn(
-          "p-4 pb-0 z-20 transition-all",
+          "shrink-0 p-4 pb-0 z-20 transition-all",
           darkMode ? "text-white" : "text-slate-900"
         )}>
           <div className={cn(
-            "border-2 p-6 rounded-[2.5rem] sticky top-4 z-20 transition-all",
+            "border-2 p-6 rounded-[2.5rem] transition-all",
             darkMode 
               ? "bg-[#162534]/90 backdrop-blur-md border-orange-300 shadow-[0_0_20px_rgba(253,186,116,0.2)]" 
               : "bg-white/90 backdrop-blur-md border-orange-100 shadow-[0_10px_30px_rgba(253,186,116,0.3)]"
@@ -431,9 +432,8 @@ export function Dashboard({
         </div>
         </header>
         
-        {/* Content Area */}
-        <div className="px-4 pt-4 pb-64">
-          <div className="h-4 w-full" /> {/* Spacer */}
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 pt-4 pb-32 custom-scrollbar">
           {/* Main */}
           <main className="max-w-md mx-auto space-y-6">
         {isAdmin && activeView === 'admin' ? (
@@ -735,7 +735,7 @@ export function Dashboard({
 
         {/* Nav */}
         <nav className={cn(
-          "fixed bottom-6 left-1/2 -translate-x-1/2 border-2 rounded-full p-2 flex gap-4 z-40 transition-all",
+          "absolute bottom-6 left-1/2 -translate-x-1/2 border-2 rounded-full p-2 flex gap-4 z-40 transition-all",
         darkMode 
           ? "bg-black/80 backdrop-blur-md border-orange-300 shadow-[0_0_20px_rgba(253,186,116,0.3)]" 
           : "bg-white/80 backdrop-blur-md border-orange-100 shadow-[0_10px_30px_rgba(253,186,116,0.4)]"
