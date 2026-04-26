@@ -88,13 +88,6 @@ export function Dashboard({
 
   const isAdmin = secretCode === 'admin-jeronimo';
   const dateStr = format(selectedDate, 'yyyy-MM-dd');
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  const scrollDown = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ top: 200, behavior: 'smooth' });
-    }
-  };
 
   const currentDayOfWeek = getDay(selectedDate);
 
@@ -444,7 +437,6 @@ export function Dashboard({
         
         {/* Scrollable Content Area */}
         <div 
-          ref={scrollContainerRef}
           className="flex-1 overflow-y-auto overflow-x-hidden px-4 pt-4 pb-32 custom-scrollbar relative"
         >
           {/* Main */}
@@ -743,22 +735,7 @@ export function Dashboard({
         >
           <Share2 size={16} strokeWidth={3} /> Compartir App
         </button>
-          </footer>
-        </div>
-
-        {/* Floating Scroll Button */}
-        <button 
-          onClick={scrollDown}
-          className={cn(
-            "flex absolute bottom-28 right-8 z-[100] p-4 rounded-full border-4 shadow-2xl transition-all active:scale-95",
-            darkMode 
-              ? "bg-orange-400 border-white text-black" 
-              : "bg-orange-500 border-white text-white"
-          )}
-          title="Bajar"
-        >
-          <ChevronDown size={28} strokeWidth={4} />
-        </button>
+      </footer>
 
         {/* Nav */}
         <nav className={cn(
