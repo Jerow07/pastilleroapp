@@ -1,0 +1,14 @@
+name: Pill Reminder Cron
+on:
+  schedule:
+    - cron: '*/1 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping-api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Cron API
+        run: |
+          curl -X GET "https://pastilleroapp-git-main-jeronimo-s-projects-101430f9.vercel.app/api/cron-notifications"
+
