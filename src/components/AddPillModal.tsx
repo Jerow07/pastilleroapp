@@ -10,7 +10,7 @@ interface AddPillModalProps {
   pill?: Pill; // Si viene una pill, estamos editando
 }
 
-const EMOJIS = ['💊', '🧪', '💉'];
+const EMOJIS = ['💊', '🧪', '💉', '🧴', '💨', '💧'];
 const COLORS = [
   'bg-orange-300', 
   'bg-blue-300', 
@@ -293,6 +293,9 @@ export function AddPillModal({ onSave, onClose, darkMode, pill }: AddPillModalPr
                       <option value="pastillas">Pastillas</option>
                       <option value="mg">mg</option>
                       <option value="ml">ml</option>
+                      <option value="gotas">Gotas</option>
+                      <option value="puff">Puff (Spray)</option>
+                      <option value="aplicaciones">Aplicaciones (Crema)</option>
                       <option value="dosis">Dosis</option>
                     </select>
                   </div>
