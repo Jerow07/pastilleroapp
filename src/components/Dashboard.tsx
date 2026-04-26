@@ -469,9 +469,9 @@ export default function Dashboard({
                         alert('Error: ' + (data.error || 'No se pudo enviar'));
                       }
                     }}
-                    className="text-[9px] font-black bg-cyan-400/20 text-cyan-400 border border-cyan-400/30 px-2 py-0.5 rounded-md hover:bg-cyan-400/30 transition-all"
+                    className="mt-4 w-full bg-orange-500 hover:bg-orange-600 text-white font-black py-4 rounded-2xl shadow-[0_4px_15px_rgba(249,115,22,0.4)] active:scale-95 transition-all flex items-center justify-center gap-2"
                   >
-                    PROBAR PUSH 🔔
+                    <span>🔔</span> PROBAR NOTIFICACIONES PUSH
                   </button>
                 </div>
               </div>
