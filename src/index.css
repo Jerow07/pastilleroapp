@@ -11,8 +11,11 @@
   --color-danger: #ef4444;
 }
 
-body {
+html, body {
   margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  overflow-y: auto !important;
   font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
