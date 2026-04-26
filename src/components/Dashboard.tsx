@@ -266,22 +266,26 @@ export function Dashboard({
 
   return (
     <div className={cn(
-      "min-h-screen font-sans flex flex-col items-center justify-start p-4 md:p-8 overflow-x-hidden",
+      "h-screen md:h-screen w-full font-sans flex flex-col items-center justify-center p-0 md:p-8 overflow-hidden",
       "bg-[url('/bg.png')] bg-cover bg-center bg-fixed"
     )}>
       {/* Recuadro de la App - Estilo Redondeado Premium */}
       <div className={cn(
-        "w-full max-w-md min-h-screen p-4 pb-32 flex flex-col relative transition-all duration-500 shadow-[0_0_80px_rgba(0,0,0,0.4)] z-10",
-        "rounded-[3rem] border-4 border-white/20",
+        "w-full max-w-md h-full md:h-[min(850px,95vh)] flex flex-col relative transition-all duration-500 shadow-[0_0_80px_rgba(0,0,0,0.4)] z-10",
+        "md:rounded-[3rem] md:border-4 md:border-white/20 overflow-hidden",
         darkMode ? "bg-[#0c141d]/95 text-white" : "bg-[#f0f9ff]/95 text-slate-900"
       )}>
         {/* Header */}
         <header className={cn(
-          "mb-8 border-2 p-6 rounded-[2.5rem] sticky top-4 z-20 transition-all",
-          darkMode 
-            ? "bg-[#162534]/90 backdrop-blur-md border-orange-300 shadow-[0_0_20px_rgba(253,186,116,0.2)]" 
-            : "bg-white/90 backdrop-blur-md border-orange-100 shadow-[0_10px_30px_rgba(253,186,116,0.3)]"
+          "shrink-0 p-4 pb-0 z-20 transition-all",
+          darkMode ? "text-white" : "text-slate-900"
         )}>
+          <div className={cn(
+            "border-2 p-6 rounded-[2.5rem] transition-all",
+            darkMode 
+              ? "bg-[#162534]/90 backdrop-blur-md border-orange-300 shadow-[0_0_20px_rgba(253,186,116,0.2)]" 
+              : "bg-white/90 backdrop-blur-md border-orange-100 shadow-[0_10px_30px_rgba(253,186,116,0.3)]"
+          )}>
         <div className="flex justify-between items-center mb-4">
           <div className="flex flex-col">
             <div className="flex items-center gap-2 mb-1">
@@ -404,10 +408,12 @@ export function Dashboard({
             <button onClick={onLogout} className={cn("p-2 border-2 rounded-xl transition-all", darkMode ? "bg-black border-orange-400 text-orange-400" : "bg-white border-black text-black")}><LogOut size={20} /></button>
           </div>
         </div>
-      </header>
-
-      {/* Main */}
-      <main className="max-w-md mx-auto space-y-6">
+        </header>
+        
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 pt-4 pb-32 custom-scrollbar">
+          {/* Main */}
+          <main className="max-w-md mx-auto space-y-6">
         {isAdmin && activeView === 'admin' ? (
           <div className="space-y-4">
             <div className="flex items-center gap-3 mb-6">
@@ -702,11 +708,12 @@ export function Dashboard({
         >
           <Share2 size={16} strokeWidth={3} /> Compartir App
         </button>
-      </footer>
+          </footer>
+        </div>
 
-      {/* Nav */}
-      <nav className={cn(
-        "fixed bottom-6 left-1/2 -translate-x-1/2 border-2 rounded-full p-2 flex gap-4 z-30 transition-all",
+        {/* Nav */}
+        <nav className={cn(
+          "absolute bottom-6 left-1/2 -translate-x-1/2 border-2 rounded-full p-2 flex gap-4 z-30 transition-all",
         darkMode 
           ? "bg-black/80 backdrop-blur-md border-orange-300 shadow-[0_0_20px_rgba(253,186,116,0.3)]" 
           : "bg-white/80 backdrop-blur-md border-orange-100 shadow-[0_10px_30px_rgba(253,186,116,0.4)]"
