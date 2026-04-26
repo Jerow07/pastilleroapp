@@ -112,15 +112,17 @@ export function Dashboard({
       fetchUsers();
       setTimeout(() => setAdminLoading(false), 1000);
       
-      interval = setInterval(fetchUsers, 10000); // Actualiza cada 10 segundos
+      interval = setInterval(fetchUsers, 5000); // Actualiza cada 5 segundos
 
-      // También actualizamos al recuperar el foco (volver a la pestaña)
+      // También actualizamos al recuperar el foco o volver a la pestaña
       window.addEventListener('focus', fetchUsers);
+      document.addEventListener('visibilitychange', fetchUsers);
     }
 
     return () => {
       if (interval) clearInterval(interval);
       window.removeEventListener('focus', fetchUsers);
+      document.removeEventListener('visibilitychange', fetchUsers);
     };
   }, [activeView, isAdmin]);
   
