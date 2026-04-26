@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "prebuild": "echo 'BUILD VERSION v1.6.2'",
+    "prebuild": "echo 'BUILD VERSION v1.7.0'",
     "dev": "vite",
     "postinstall": "npm install vite@6.4.2",
     "build": "vite build",
