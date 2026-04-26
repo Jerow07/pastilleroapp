@@ -745,18 +745,18 @@ export function Dashboard({
           </footer>
         </div>
 
-        {/* Floating Scroll Button (Desktop Only) */}
+        {/* Floating Scroll Button */}
         <button 
           onClick={scrollDown}
           className={cn(
-            "hidden md:flex absolute bottom-24 right-4 z-50 p-3 rounded-full border-2 shadow-2xl transition-all active:scale-95 animate-bounce",
+            "flex absolute bottom-28 right-8 z-[100] p-4 rounded-full border-4 shadow-2xl transition-all active:scale-95",
             darkMode 
-              ? "bg-orange-300 border-white text-black shadow-orange-500/20" 
-              : "bg-orange-400 border-orange-100 text-white shadow-orange-400/30"
+              ? "bg-orange-400 border-white text-black" 
+              : "bg-orange-500 border-white text-white"
           )}
           title="Bajar"
         >
-          <ChevronDown size={24} strokeWidth={3} />
+          <ChevronDown size={28} strokeWidth={4} />
         </button>
 
         {/* Nav */}
