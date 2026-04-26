@@ -200,6 +200,31 @@ export function usePills() {
     });
   }, [secretCode]);
 
+  // Sincronización automática periódica y por foco
+  useEffect(() => {
+    if (!secretCode) return;
+
+    // 1. Cada 15 segundos (para no agotar la cuota de la base de datos gratis)
+    const interval = setInterval(() => {
+      console.log('[AutoSync] Ejecutando sincronización periódica...');
+      setSecretCode(null);
+      setTimeout(() => setSecretCode(secretCode), 10);
+    }, 15000);
+
+    // 2. Cuando el usuario vuelve a la pestaña de la app
+    const handleFocus = () => {
+      console.log('[AutoSync] Foco detectado, sincronizando...');
+      setSecretCode(null);
+      setTimeout(() => setSecretCode(secretCode), 10);
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [secretCode]);
+
   return {
     secretCode,
     saveSecretCode,
