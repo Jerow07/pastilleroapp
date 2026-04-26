@@ -266,12 +266,12 @@ export function Dashboard({
 
   return (
     <div className={cn(
-      "min-h-screen w-full font-sans flex flex-col items-center justify-start p-4 md:p-12",
-      "bg-[url('/bg.png')] bg-cover bg-center bg-fixed"
+      "min-h-screen w-full font-sans p-4 md:p-12",
+      "bg-[url('/bg.png')] bg-cover bg-center"
     )}>
       {/* Recuadro de la App - Estilo Redondeado Premium */}
       <div className={cn(
-        "w-full max-w-md flex flex-col relative transition-all duration-500 shadow-[0_0_80px_rgba(0,0,0,0.4)] z-10",
+        "mx-auto w-full max-w-md flex flex-col relative transition-all duration-500 shadow-[0_0_80px_rgba(0,0,0,0.4)] z-10",
         "rounded-[3rem] border-4 border-white/20 overflow-y-visible",
         darkMode ? "bg-[#0c141d]/95 text-white" : "bg-[#f0f9ff]/95 text-slate-900"
       )}>
