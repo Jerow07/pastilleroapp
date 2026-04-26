@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Pill } from '../lib/types';
 
 export function usePills() {
@@ -6,30 +6,30 @@ export function usePills() {
   const [pills, setPills] = useState<Pill[]>([]);
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  
+  // Usamos una ref para tener siempre el estado más fresco sin disparar efectos
+  const pillsRef = useRef<Pill[]>([]);
+  useEffect(() => {
+    pillsRef.current = pills;
+  }, [pills]);
 
   const loadAndSync = useCallback(async (code: string) => {
     if (!code) return;
-    setLoading(true);
+    setSyncing(true);
     
-    let localPills: Pill[] = [];
-    const saved = localStorage.getItem(`pillapp_pills_${code}`);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) localPills = parsed;
-      } catch (e) {}
-    }
-    setPills(localPills);
-
     try {
       const res = await fetch(`/api/pills?user=${code}`);
       if (res.ok) {
         const cloudData = await res.json();
         if (Array.isArray(cloudData)) {
+          const localPills = pillsRef.current.length > 0 
+            ? pillsRef.current 
+            : JSON.parse(localStorage.getItem(`pillapp_pills_${code}`) || '[]');
+
           const mergedMap = new Map<string, Pill>();
-          localPills.forEach(p => mergedMap.set(p.id, p));
+          localPills.forEach((p: Pill) => mergedMap.set(p.id, p));
           
-          cloudData.forEach(p => {
+          cloudData.forEach((p: Pill) => {
             const existing = mergedMap.get(p.id);
             if (!existing) {
               mergedMap.set(p.id, p);
@@ -49,16 +49,20 @@ export function usePills() {
           setPills(mergedPills);
           localStorage.setItem(`pillapp_pills_${code}`, JSON.stringify(mergedPills));
 
-          await fetch('/api/pills', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user: code, pills: mergedPills }),
-          });
+          // Solo subimos si hubo cambios (esto evita bucles infinitos)
+          if (JSON.stringify(mergedPills) !== JSON.stringify(cloudData)) {
+            await fetch('/api/pills', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ user: code, pills: mergedPills }),
+            });
+          }
         }
       }
     } catch (err) {
       console.error('[Sync] Error:', err);
     } finally {
+      setSyncing(false);
       setLoading(false);
     }
   }, []);
@@ -69,6 +73,17 @@ export function usePills() {
     if (rawCode) {
       const code = rawCode.trim().toLowerCase();
       setSecretCode(code);
+      setLoading(true);
+      const saved = localStorage.getItem(`pillapp_pills_${code}`);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            setPills(parsed);
+            pillsRef.current = parsed;
+          }
+        } catch (e) {}
+      }
       loadAndSync(code);
     }
   }, [loadAndSync]);
@@ -182,7 +197,7 @@ export function usePills() {
     if (!secretCode) return;
     const interval = setInterval(() => {
       refresh();
-    }, 15000);
+    }, 10000); // Bajamos a 10 segundos para que se sienta más rápido
 
     const handleFocus = () => refresh();
     window.addEventListener('focus', handleFocus);
@@ -196,7 +211,7 @@ export function usePills() {
     secretCode,
     saveSecretCode,
     logout,
-    pills: pills.filter(p => !p.deleted), // El UI solo ve las que NO están borradas
+    pills: pills.filter(p => !p.deleted),
     loading,
     syncing,
     addPill,
