@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import type { Pill } from './lib/types';
 import { AuthScreen } from './components/AuthScreen';
-import { Dashboard } from './components/Dashboard';
+import Dashboard from './components/Dashboard';
 import { AddPillModal } from './components/AddPillModal';
 import { usePills } from './hooks/usePills';
 
