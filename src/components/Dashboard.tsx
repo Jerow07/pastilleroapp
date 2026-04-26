@@ -760,6 +760,7 @@ export function Dashboard({
           <Share2 size={16} strokeWidth={3} /> Compartir App
         </button>
       </footer>
+    </div>
 
         {/* Nav */}
         <nav className={cn(
