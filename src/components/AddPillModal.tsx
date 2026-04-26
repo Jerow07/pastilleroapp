@@ -32,7 +32,7 @@ const EMOJI_LABELS: Record<string, { label: string, gender: 'm' | 'f' }> = {
 export function AddPillModal({ onSave, onClose, darkMode, pill }: AddPillModalProps) {
   const [name, setName] = useState(pill?.name || '');
   const [dose, setDose] = useState(pill?.dose || '');
-  const [time, setTime] = useState(pill?.time || '08:00');
+  const [times, setTimes] = useState<string[]>(pill?.times || (pill?.time ? [pill.time] : ['08:00']));
   const [frequency, setFrequency] = useState<'daily' | 'specific_days'>(pill?.frequency || 'daily');
   const [selectedDays, setSelectedDays] = useState<number[]>(pill?.selectedDays || [1, 2, 3, 4, 5]);
   const [selectedEmoji, setSelectedEmoji] = useState(pill?.emoji || EMOJIS[0]);
@@ -58,13 +58,14 @@ export function AddPillModal({ onSave, onClose, darkMode, pill }: AddPillModalPr
   ];
 
   const handleSave = () => {
-    if (!name.trim()) return;
+    if (!name.trim() || times.length === 0) return;
 
     const newPill: Pill = {
       id: pill?.id || Math.random().toString(36).substring(2, 10),
       name: name.trim(),
       dose: dose.trim(),
-      time,
+      time: times[0], // Sigue existiendo para compatibilidad
+      times: [...times].sort(),
       takenDates: pill?.takenDates || [],
       frequency,
       selectedDays: frequency === 'specific_days' ? selectedDays : [],
@@ -79,6 +80,14 @@ export function AddPillModal({ onSave, onClose, darkMode, pill }: AddPillModalPr
 
     onSave(newPill);
     onClose();
+  };
+
+  const addTime = () => setTimes([...times, '08:00']);
+  const removeTime = (index: number) => setTimes(times.filter((_, i) => i !== index));
+  const updateTime = (index: number, val: string) => {
+    const newTimes = [...times];
+    newTimes[index] = val;
+    setTimes(newTimes);
   };
 
   const toggleDay = (dayId: number) => {
@@ -172,50 +181,74 @@ export function AddPillModal({ onSave, onClose, darkMode, pill }: AddPillModalPr
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={cn("block text-xs font-black uppercase mb-1 ml-1 flex items-center gap-1", darkMode ? "text-orange-300" : "text-sky-600")}>
-                  <Clock size={12} strokeWidth={3} /> Hora
-                </label>
-                <input
-                  type="time"
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
+            <div className="space-y-4">
+              <label className={cn("block text-xs font-black uppercase mb-1 ml-1 flex items-center gap-1", darkMode ? "text-orange-300" : "text-sky-600")}>
+                <Clock size={12} strokeWidth={3} /> Horarios de toma
+              </label>
+              <div className="grid grid-cols-1 gap-2">
+                {times.map((t, i) => (
+                  <div key={i} className="flex gap-2 animate-in slide-in-from-left-2 duration-200">
+                    <input
+                      type="time"
+                      value={t}
+                      onChange={(e) => updateTime(i, e.target.value)}
+                      className={cn(
+                        "flex-1 px-4 py-3 border-2 rounded-2xl font-black focus:outline-none transition-all",
+                        darkMode ? "bg-[#1c2e3f] border-orange-900 text-white focus:border-orange-300" : "bg-orange-50/50 border-orange-100 text-slate-800"
+                      )}
+                    />
+                    {times.length > 1 && (
+                      <button 
+                        onClick={() => removeTime(i)}
+                        className={cn(
+                          "px-4 border-2 rounded-2xl transition-all active:scale-90",
+                          darkMode ? "bg-red-900/20 border-red-900 text-red-500" : "bg-red-50 border-red-100 text-red-500"
+                        )}
+                      >
+                        <X size={20} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button 
+                  onClick={addTime}
                   className={cn(
-                    "w-full px-4 py-4 border-2 rounded-2xl font-black focus:outline-none transition-all",
-                    darkMode ? "bg-[#1c2e3f] border-orange-900 text-white focus:border-orange-300" : "bg-orange-50/50 border-orange-100 text-slate-800"
+                    "w-full py-3 border-2 border-dashed rounded-2xl font-black uppercase text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95",
+                    darkMode ? "bg-orange-300/5 border-orange-300/30 text-orange-300" : "bg-orange-50 border-orange-200 text-orange-500"
                   )}
-                />
+                >
+                  <Plus size={14} strokeWidth={3} /> Agregar otro horario
+                </button>
               </div>
+            </div>
 
-              <div>
-                <label className={cn("block text-xs font-black uppercase mb-1 ml-1 flex items-center gap-1", darkMode ? "text-orange-300" : "text-sky-600")}>
-                  <Calendar size={12} strokeWidth={3} /> Frecuencia
-                </label>
-                <div className={cn("flex border-2 rounded-2xl overflow-hidden h-[58px]", darkMode ? "border-orange-900" : "border-orange-100")}>
-                  <button
-                    onClick={() => setFrequency('daily')}
-                    className={cn(
-                      "flex-1 text-[10px] font-black uppercase transition-all",
-                      frequency === 'daily' 
-                        ? (darkMode ? "bg-orange-300 text-black" : "bg-orange-400 text-white") 
-                        : (darkMode ? "bg-[#162534] text-orange-900 hover:text-orange-300" : "bg-white text-orange-200 hover:bg-orange-50")
-                    )}
-                  >
-                    Diaria
-                  </button>
-                  <button
-                    onClick={() => setFrequency('specific_days')}
-                    className={cn(
-                      "flex-1 text-[10px] font-black uppercase transition-all",
-                      frequency === 'specific_days' 
-                        ? (darkMode ? "bg-orange-300 text-black" : "bg-orange-400 text-white") 
-                        : (darkMode ? "bg-[#162534] text-orange-900 hover:text-orange-300" : "bg-white text-orange-200 hover:bg-orange-50")
-                    )}
-                  >
-                    Días
-                  </button>
-                </div>
+            <div>
+              <label className={cn("block text-xs font-black uppercase mb-1 ml-1 flex items-center gap-1", darkMode ? "text-orange-300" : "text-sky-600")}>
+                <Calendar size={12} strokeWidth={3} /> Frecuencia
+              </label>
+              <div className={cn("flex border-2 rounded-2xl overflow-hidden h-[58px]", darkMode ? "border-orange-900" : "border-orange-100")}>
+                <button
+                  onClick={() => setFrequency('daily')}
+                  className={cn(
+                    "flex-1 text-[10px] font-black uppercase transition-all",
+                    frequency === 'daily' 
+                      ? (darkMode ? "bg-orange-300 text-black" : "bg-orange-400 text-white") 
+                      : (darkMode ? "bg-[#162534] text-orange-900 hover:text-orange-300" : "bg-white text-orange-200 hover:bg-orange-50")
+                  )}
+                >
+                  Diaria
+                </button>
+                <button
+                  onClick={() => setFrequency('specific_days')}
+                  className={cn(
+                    "flex-1 text-[10px] font-black uppercase transition-all",
+                    frequency === 'specific_days' 
+                      ? (darkMode ? "bg-orange-300 text-black" : "bg-orange-400 text-white") 
+                      : (darkMode ? "bg-[#162534] text-orange-900 hover:text-orange-300" : "bg-white text-orange-200 hover:bg-orange-50")
+                  )}
+                >
+                  Días
+                </button>
               </div>
             </div>
 
@@ -333,10 +366,10 @@ export function AddPillModal({ onSave, onClose, darkMode, pill }: AddPillModalPr
         <div className={cn("p-6 border-t-2", darkMode ? "bg-[#162534] border-orange-300" : "bg-orange-50 border-orange-100")}>
           <button
             onClick={handleSave}
-            disabled={!name.trim()}
+            disabled={!name.trim() || times.length === 0}
             className={cn(
               "w-full py-5 rounded-3xl border-2 font-black uppercase tracking-widest text-lg flex items-center justify-center gap-2 transition-all active:scale-95",
-              name.trim() 
+              name.trim() && times.length > 0
                 ? (darkMode ? "bg-orange-300 border-white text-black shadow-[0_0_20px_rgba(253,186,116,0.4)]" : "bg-orange-400 border-orange-500 text-white shadow-[0_4px_15px_rgba(253,186,116,0.3)]") 
                 : "bg-gray-100 border-gray-200 text-gray-300 cursor-not-allowed shadow-none"
             )}

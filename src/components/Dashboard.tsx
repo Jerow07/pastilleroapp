@@ -163,61 +163,62 @@ export function Dashboard({
   const safePills = Array.isArray(pills) ? pills.filter(p => p && typeof p === 'object' && p.id && p.takenDates) : [];
   const sortedPills = [...safePills].sort((a, b) => a.time.localeCompare(b.time));
   
-  const displayedPills = sortedPills.filter(pill => {
-    // Usar fecha local para la comparación
-    if (pill.createdAt) {
-      const createdDate = new Date(pill.createdAt);
-      const today = new Date();
-      today.setHours(0,0,0,0);
-      const selDate = new Date(selectedDate);
-      selDate.setHours(0,0,0,0);
-      
-      if (selDate < new Date(createdDate.getFullYear(), createdDate.getMonth(), createdDate.getDate())) return false;
-    }
-    const isTaken = pill.takenDates.includes(dateStr);
+  const displayedPills = sortedPills.flatMap(pill => {
+    // Si no tiene 'times' (datos viejos), lo tratamos como si tuviera solo uno
+    const timesToRender = pill.times && pill.times.length > 0 ? pill.times : [pill.time];
     
-    // Proyección de stock
-    if (pill.stockEnabled && pill.totalStock !== undefined && pill.quantityPerDose !== undefined) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const targetDate = new Date(selectedDate);
-      targetDate.setHours(0, 0, 0, 0);
-
-      if (targetDate > today && !isTaken) {
-        let scheduledDosesCount = 0;
-        let tempDate = addDays(today, 1);
-        while (tempDate <= targetDate) {
-          const tempDayOfWeek = getDay(tempDate);
-          const isScheduled = !pill.frequency || pill.frequency === 'daily' || 
-            (pill.frequency === 'specific_days' && pill.selectedDays?.includes(tempDayOfWeek));
-          if (isScheduled) scheduledDosesCount++;
-          tempDate = addDays(tempDate, 1);
-          if (scheduledDosesCount > 1000) break; // Seguridad
-        }
-        if (pill.totalStock < (scheduledDosesCount * pill.quantityPerDose)) return false;
-      } else if (pill.totalStock <= 0 && !isTaken) {
-        return false;
+    return timesToRender.map(t => {
+      // Usar fecha local para la comparación
+      if (pill.createdAt) {
+        const createdDate = new Date(pill.createdAt);
+        const selDate = new Date(selectedDate);
+        selDate.setHours(0,0,0,0);
+        if (selDate < new Date(createdDate.getFullYear(), createdDate.getMonth(), createdDate.getDate())) return null;
       }
-    }
 
-    if (!pill.frequency || pill.frequency === 'daily') {
-      return true;
-    }
-    if (pill.frequency === 'specific_days' && pill.selectedDays) {
-      return pill.selectedDays.includes(currentDayOfWeek);
-    }
-    return false;
-  });
+      const isTaken = pill.takenDates.includes(`${dateStr}|${t}`);
+      
+      // Proyección de stock
+      if (pill.stockEnabled && pill.totalStock !== undefined && pill.quantityPerDose !== undefined) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const targetDate = new Date(selectedDate);
+        targetDate.setHours(0, 0, 0, 0);
 
-  const handleToggle = (id: string) => {
-    const pill = displayedPills.find(p => p.id === id);
+        if (targetDate > today && !isTaken) {
+          let scheduledDosesCount = 0;
+          let tempDate = addDays(today, 1);
+          while (tempDate <= targetDate) {
+            const tempDayOfWeek = getDay(tempDate);
+            const isScheduled = !pill.frequency || pill.frequency === 'daily' || 
+              (pill.frequency === 'specific_days' && pill.selectedDays?.includes(tempDayOfWeek));
+            // Si es diario o toca ese día, contamos todas las tomas del día
+            if (isScheduled) scheduledDosesCount += timesToRender.length;
+            tempDate = addDays(tempDate, 1);
+            if (scheduledDosesCount > 1000) break;
+          }
+          if (pill.totalStock < (scheduledDosesCount * pill.quantityPerDose)) return null;
+        } else if (pill.totalStock <= 0 && !isTaken) {
+          return null;
+        }
+      }
+
+      const isScheduled = !pill.frequency || pill.frequency === 'daily' || (pill.frequency === 'specific_days' && pill.selectedDays?.includes(currentDayOfWeek));
+      if (!isScheduled) return null;
+
+      return { ...pill, displayTime: t };
+    });
+  }).filter(Boolean) as (Pill & { displayTime: string })[];
+
+  const handleToggle = (id: string, timeStr: string) => {
+    const pill = displayedPills.find(p => p.id === id && p.displayTime === timeStr);
     if (!pill) return;
-    const isCurrentlyTaken = pill.takenDates.includes(dateStr);
-    onTogglePill(id, dateStr);
+    const isCurrentlyTaken = pill.takenDates.includes(`${dateStr}|${timeStr}`);
+    onTogglePill(id, `${dateStr}|${timeStr}`);
 
     if (!isCurrentlyTaken) {
       new Audio('/sounds/check.mp3').play().catch(() => {});
-      const remaining = displayedPills.filter(p => p.id !== id && !p.takenDates.includes(dateStr)).length;
+      const remaining = displayedPills.filter(p => !(p.id === id && p.displayTime === timeStr) && !p.takenDates.includes(`${dateStr}|${p.displayTime}`)).length;
       if (remaining === 0) {
         setTimeout(() => new Audio('/sounds/success.mp3').play().catch(() => {}), 500);
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
@@ -241,13 +242,16 @@ export function Dashboard({
       const dLabel = format(day, 'EEEE d', { locale: es });
       const dayOfWeek = getDay(day);
       
-      const dayPills = pills.filter(p => {
-        if (p.createdAt && day < startOfDay(new Date(p.createdAt))) return false;
-        return !p.frequency || p.frequency === 'daily' || (p.frequency === 'specific_days' && p.selectedDays?.includes(dayOfWeek));
+      const dayPills = pills.flatMap(p => {
+        if (p.createdAt && day < startOfDay(new Date(p.createdAt))) return [];
+        const isScheduled = !p.frequency || p.frequency === 'daily' || (p.frequency === 'specific_days' && p.selectedDays?.includes(dayOfWeek));
+        if (!isScheduled) return [];
+        const timesToRender = p.times && p.times.length > 0 ? p.times : [p.time];
+        return timesToRender.map(t => ({ ...p, displayTime: t }));
       });
 
       if (dayPills.length > 0) {
-        const taken = dayPills.filter(p => p.takenDates.includes(dStr)).length;
+        const taken = dayPills.filter(p => p.takenDates.includes(`${dStr}|${p.displayTime}`)).length;
         const percent = Math.round((taken / dayPills.length) * 100);
         report += `*${dLabel}:* ${percent}% (${taken}/${dayPills.length})\n`;
       }
@@ -258,7 +262,7 @@ export function Dashboard({
     window.open(waUrl, '_blank');
   };
 
-  const takenCount = displayedPills.filter(p => p.takenDates.includes(dateStr)).length;
+  const takenCount = displayedPills.filter(p => p.takenDates.includes(`${dateStr}|${p.displayTime}`)).length;
 
   return (
     <div className={cn(
@@ -449,10 +453,10 @@ export function Dashboard({
           </div>
         ) : activeView === 'dashboard' ? (
           <div className="grid gap-6">
-            {displayedPills.map((pill) => {
-              const isTaken = pill.takenDates.includes(dateStr);
+            {displayedPills.sort((a, b) => a.displayTime.localeCompare(b.displayTime)).map((pill) => {
+              const isTaken = pill.takenDates.includes(`${dateStr}|${pill.displayTime}`);
               return (
-                <div key={pill.id} onClick={() => handleToggle(pill.id)} className={cn(
+                <div key={`${pill.id}-${pill.displayTime}`} onClick={() => handleToggle(pill.id, pill.displayTime)} className={cn(
                   "relative px-4 py-4 border-2 rounded-[2rem] transition-all cursor-pointer",
                   isTaken 
                     ? "opacity-30 scale-95" 
@@ -469,7 +473,7 @@ export function Dashboard({
                       <div className={cn(
                         "text-[10px] font-black uppercase opacity-60 flex items-center gap-1",
                         darkMode ? "text-cyan-400" : "text-blue-500"
-                      )}><Clock size={10} /> {pill.time}</div>
+                      )}><Clock size={10} /> {pill.displayTime}</div>
                       <h3 className={cn("text-xl font-black truncate", !darkMode && "text-slate-800")}>{pill.name}</h3>
                       <p className={cn("font-bold text-xs opacity-60 truncate", !darkMode && "text-slate-500")}>{pill.dose}</p>
                       {pill.stockEnabled && (

@@ -2,10 +2,11 @@ export interface Pill {
   id: string;
   name: string;
   dose: string;
-  time: string; // formato HH:mm
-  takenDates: string[]; // array de fechas (YYYY-MM-DD) en que se ha tomado
+  time: string; // Mantenemos por compatibilidad (primer horario)
+  times?: string[]; // Lista de todos los horarios (ej: ["08:00", "20:00"])
+  takenDates: string[]; // Ahora guardará formato "YYYY-MM-DD|HH:mm"
   frequency?: 'daily' | 'specific_days';
-  selectedDays?: number[]; // 0=Dom, 1=Lun, 2=Mar, 3=Mie, 4=Jue, 5=Vie, 6=Sab
+  selectedDays?: number[];
   createdAt?: string;
   updatedAt?: string;
   deleted?: boolean;

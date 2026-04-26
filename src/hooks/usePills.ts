@@ -30,6 +30,11 @@ export function usePills() {
           localPills.forEach((p: Pill) => mergedMap.set(p.id, p));
           
           cloudData.forEach((p: Pill) => {
+            // Migración simple de datos viejos de tomas si es necesario
+            if (p.takenDates) {
+              p.takenDates = p.takenDates.map(d => d.includes('|') ? d : `${d}|${p.time}`);
+            }
+            
             const existing = mergedMap.get(p.id);
             if (!existing) {
               mergedMap.set(p.id, p);
@@ -79,8 +84,13 @@ export function usePills() {
         try {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed)) {
-            setPills(parsed);
-            pillsRef.current = parsed;
+            // Migración local rápida
+            const migrated = parsed.map(p => ({
+              ...p,
+              takenDates: p.takenDates.map((d: string) => d.includes('|') ? d : `${d}|${p.time}`)
+            }));
+            setPills(migrated);
+            pillsRef.current = migrated;
           }
         } catch (e) {}
       }
@@ -104,7 +114,13 @@ export function usePills() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) setPills(parsed);
+        if (Array.isArray(parsed)) {
+          const migrated = parsed.map(p => ({
+            ...p,
+            takenDates: p.takenDates.map((d: string) => d.includes('|') ? d : `${d}|${p.time}`)
+          }));
+          setPills(migrated);
+        }
       } catch (e) {}
     }
 
@@ -160,15 +176,15 @@ export function usePills() {
     });
   }, [secretCode]);
 
-  const togglePillTaken = useCallback((pillId: string, dateStr: string) => {
+  const togglePillTaken = useCallback((idWithTime: string, dateAndTimeToToggle: string) => {
     const now = new Date().toISOString();
     setPills(prev => {
       const next = prev.map((p) => {
-        if (p.id === pillId) {
-          const isTaken = p.takenDates.includes(dateStr);
+        if (p.id === idWithTime) {
+          const isTaken = p.takenDates.includes(dateAndTimeToToggle);
           const newDates = isTaken
-            ? p.takenDates.filter(d => d !== dateStr)
-            : [...p.takenDates, dateStr];
+            ? p.takenDates.filter(d => d !== dateAndTimeToToggle)
+            : [...p.takenDates, dateAndTimeToToggle];
           
           let newTotalStock = p.totalStock;
           if (p.stockEnabled && p.totalStock !== undefined && p.quantityPerDose !== undefined) {
