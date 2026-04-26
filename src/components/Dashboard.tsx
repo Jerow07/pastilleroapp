@@ -458,16 +458,16 @@ export function Dashboard({
                       "text-4xl border-2 p-3 rounded-2xl transition-all",
                       darkMode ? "bg-black border-cyan-900" : "bg-blue-50 border-blue-100"
                     )}>{pill.emoji || '💊'}</div>
-                    <div className="flex-1 overflow-hidden">
+                    <div className="flex-1 min-w-0">
                       <div className={cn(
                         "text-[10px] font-black uppercase opacity-60 flex items-center gap-1",
                         darkMode ? "text-cyan-400" : "text-blue-500"
                       )}><Clock size={10} /> {pill.time}</div>
                       <h3 className={cn("text-2xl font-black truncate", !darkMode && "text-slate-800")}>{pill.name}</h3>
-                      <p className={cn("font-bold text-sm opacity-60", !darkMode && "text-slate-500")}>{pill.dose}</p>
+                      <p className={cn("font-bold text-sm opacity-60 truncate", !darkMode && "text-slate-500")}>{pill.dose}</p>
                       {pill.stockEnabled && (
                         <div className={cn(
-                          "mt-2 text-[10px] font-black px-2 py-0.5 rounded border-2 w-fit",
+                          "mt-2 text-[10px] font-black px-2 py-0.5 rounded border-2 w-fit max-w-full truncate",
                           pill.totalStock! <= (pill.quantityPerDose || 1) * 3 ? "bg-red-500 text-white border-white animate-pulse" : "bg-black/5 border-black/10 text-gray-500"
                         )}>
                           BAÚL: {pill.totalStock} {pill.unit} {pill.totalStock! <= (pill.quantityPerDose || 1) * 3 && "— ¡COMPRAR! ⚠️"}
