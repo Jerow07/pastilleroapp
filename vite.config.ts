@@ -19,7 +19,7 @@ export default defineConfig({
         async function getRedis() {
           if (!redis) {
             const { default: Redis } = await import('ioredis');
-            redis = new Redis("redis://default:6SNoQEYX9Fp4HhZ9shmBJkGpuXKIs9NN@redis-17812.crce278.sa-east-1-2.ec2.cloud.redislabs.com:17812");
+            redis = new Redis(process.env.pastilleroapp_REDIS_URL || process.env.REDIS_URL || '');
           }
           return redis;
         }

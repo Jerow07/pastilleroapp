@@ -1,25 +1,7 @@
 import Redis from 'ioredis';
-import fs from 'fs';
-import path from 'path';
 
 const redisUrl = process.env.pastilleroapp_REDIS_URL || process.env.REDIS_URL || process.env.KV_URL;
 const redis = redisUrl ? new Redis(redisUrl) : null;
-
-const LOCAL_DB_PATH = path.join(process.cwd(), '.local-db.json');
-
-function getLocalData() {
-  if (!fs.existsSync(LOCAL_DB_PATH)) return {};
-  try {
-    const data = fs.readFileSync(LOCAL_DB_PATH, 'utf-8');
-    return JSON.parse(data);
-  } catch (e) {
-    return {};
-  }
-}
-
-function saveLocalData(data: any) {
-  fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify(data, null, 2));
-}
 
 export default async function handler(req: any, res: any) {
   if (req.method === 'OPTIONS') {
@@ -38,15 +20,7 @@ export default async function handler(req: any, res: any) {
       const key = `pillapp:user:${user}:subscriptions`;
 
       if (!redis) {
-        const db = getLocalData();
-        const subs = db[key] || [];
-        // Evitar duplicados
-        if (!subs.find((s: any) => s.endpoint === subscription.endpoint)) {
-          subs.push(subscription);
-        }
-        db[key] = subs;
-        saveLocalData(db);
-        return res.status(200).json({ success: true, simulated: true });
+        return res.status(500).json({ error: 'Redis no configurado' });
       }
 
       const rawData = await redis.get(key);

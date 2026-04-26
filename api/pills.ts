@@ -1,6 +1,4 @@
 import Redis from 'ioredis';
-import fs from 'fs';
-import path from 'path';
 import webpush from 'web-push';
 
 // Configurar VAPID
@@ -18,23 +16,6 @@ const redisUrl = process.env.pastilleroapp_REDIS_URL || process.env.REDIS_URL ||
 
 // Inicializamos ioredis si existe la URL
 const redis = redisUrl ? new Redis(redisUrl) : null;
-
-// Archivo local de base de datos para desarrollo
-const LOCAL_DB_PATH = path.join(process.cwd(), '.local-db.json');
-
-function getLocalData() {
-  if (!fs.existsSync(LOCAL_DB_PATH)) return {};
-  try {
-    const data = fs.readFileSync(LOCAL_DB_PATH, 'utf-8');
-    return JSON.parse(data);
-  } catch (e) {
-    return {};
-  }
-}
-
-function saveLocalData(data: any) {
-  fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify(data, null, 2));
-}
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -58,7 +39,11 @@ export default async function handler(req: any, res: any) {
         return res.status(400).json({ error: 'Falta el parámetro user' });
       }
 
-      const data = await redis!.get(`pillapp:user:${user}:pills`);
+      if (!redis) {
+        return res.status(500).json({ error: 'Redis no configurado' });
+      }
+
+      const data = await redis.get(`pillapp:user:${user}:pills`);
       return res.status(200).json(JSON.parse(data || '[]'));
     }
 
@@ -72,11 +57,7 @@ export default async function handler(req: any, res: any) {
       const key = `pillapp:user:${user}:pills`;
 
       if (!redis) {
-        const db = getLocalData();
-        if (pills) db[key] = pills;
-        if (name) db[`name:${user}`] = name;
-        saveLocalData(db);
-        return res.status(200).json({ success: true, simulated: true });
+        return res.status(500).json({ error: 'Redis no configurado' });
       }
 
       const isNewUser = await redis.sismember('pillapp:all_users', user) === 0;
