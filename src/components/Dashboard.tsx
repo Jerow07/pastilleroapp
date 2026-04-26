@@ -439,7 +439,8 @@ export function Dashboard({
             <button onClick={onLogout} className={cn("p-2 border-2 rounded-xl transition-all", darkMode ? "bg-black border-orange-400 text-orange-400" : "bg-white border-black text-black")}><LogOut size={20} /></button>
           </div>
         </div>
-        </header>
+      </div>
+    </header>
         
         {/* Scrollable Content Area */}
         <div 
