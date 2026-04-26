@@ -30,11 +30,19 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    // 1. Obtener la hora actual en Argentina (GMT-3)
-    const nowArg = formatInTimeZone(new Date(), 'America/Argentina/Buenos_Aires', 'HH:mm');
-    const dayOfWeek = parseInt(formatInTimeZone(new Date(), 'America/Argentina/Buenos_Aires', 'i')) % 7; // 0=Dom, 1=Lun...
+    // 1. Obtener la hora y fecha actual en Argentina (GMT-3)
+    const now = new Date();
+    const dateStr = formatInTimeZone(now, 'America/Argentina/Buenos_Aires', 'yyyy-MM-dd');
+    const dayOfWeek = parseInt(formatInTimeZone(now, 'America/Argentina/Buenos_Aires', 'i')) % 7;
     
-    console.log(`[Cron] Iniciando proceso de notificaciones para las ${nowArg} (Día: ${dayOfWeek})`);
+    // Generamos una lista de los últimos 5 minutos para ser resilientes a retrasos del cron
+    const checkMinutes = [];
+    for (let i = 0; i < 5; i++) {
+      const d = new Date(now.getTime() - i * 60000);
+      checkMinutes.push(formatInTimeZone(d, 'America/Argentina/Buenos_Aires', 'HH:mm'));
+    }
+    
+    console.log(`[Cron] Revisando ventanas: ${checkMinutes.join(', ')} (Día: ${dayOfWeek})`);
 
     // 2. Obtener todos los usuarios
     const users = await redis.smembers('pillapp:all_users');
@@ -46,41 +54,44 @@ export default async function handler(req: any, res: any) {
       if (!rawPills) continue;
 
       const pills = JSON.parse(rawPills);
-      const pillsToNotify = pills.filter((p: any) => {
-        // Verificar si toca hoy
+      
+      for (const p of pills) {
+        // Verificar si toca hoy y no está borrada
         const isScheduledToday = !p.frequency || p.frequency === 'daily' || (p.frequency === 'specific_days' && p.selectedDays?.includes(dayOfWeek));
-        if (!isScheduledToday || p.deleted) return false;
+        if (!isScheduledToday || p.deleted) continue;
 
-        // Verificar si coincide algún horario
+        // Verificar si algún horario de la pastilla cae en nuestra ventana de 5 minutos
         const times = p.times && p.times.length > 0 ? p.times : [p.time];
-        return times.includes(nowArg);
-      });
+        const dueTime = times.find((t: string) => checkMinutes.includes(t));
 
-      if (pillsToNotify.length > 0) {
-        // Buscar suscripciones
-        const subKey = `pillapp:user:${user}:subscriptions`;
-        const rawSubs = await redis.get(subKey);
-        if (!rawSubs) continue;
+        if (dueTime) {
+          // 3. EVITAR DUPLICADOS: Usar una llave en Redis que expire en 10 min
+          const lockKey = `pillapp:notified:${user}:${p.id}:${dateStr}:${dueTime}`;
+          const alreadyNotified = await redis.get(lockKey);
+          
+          if (!alreadyNotified) {
+            const subKey = `pillapp:user:${user}:subscriptions`;
+            const rawSubs = await redis.get(subKey);
+            if (!rawSubs) continue;
 
-        const subs = JSON.parse(rawSubs);
-        for (const pill of pillsToNotify) {
-          const payload = JSON.stringify({
-            title: `⏰ ¡Hora de tu ${pill.name}!`,
-            body: `Te toca tomar ${pill.dose}. ¡No te olvides!`,
-            icon: '/pwa-192x192.png',
-            badge: '/pwa-192x192.png',
-            data: { url: '/' }
-          });
+            const subs = JSON.parse(rawSubs);
+            const payload = JSON.stringify({
+              title: `⏰ ¡Hora de tu ${p.name}!`,
+              body: `Te toca tomar ${p.dose || 'tu dosis'}. ¡No te olvides!`,
+              icon: '/pwa-192x192.png',
+              data: { url: '/' }
+            });
 
-          for (const sub of subs) {
-            try {
-              await webpush.sendNotification(sub, payload);
-              notificationsSent++;
-            } catch (err: any) {
-              if (err.statusCode === 410 || err.statusCode === 404) {
-                // Suscripción expirada, removerla en el futuro
+            for (const sub of subs) {
+              try {
+                await webpush.sendNotification(sub, payload);
+                notificationsSent++;
+              } catch (err: any) {
+                // Limpieza de subs inválidas opcional
               }
             }
+            // Marcar como notificado
+            await redis.set(lockKey, 'true', 'EX', 600); 
           }
         }
       }
@@ -88,9 +99,8 @@ export default async function handler(req: any, res: any) {
 
     return res.status(200).json({ 
       success: true, 
-      time: nowArg, 
-      usersProcessed: users.length,
-      notificationsSent 
+      notificationsSent,
+      window: checkMinutes
     });
   } catch (error) {
     console.error('[Cron Error]:', error);
