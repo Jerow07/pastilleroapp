@@ -33,7 +33,7 @@ export default async function handler(req: any, res: any) {
 
   try {
     if (req.method === 'GET') {
-      const { user } = req.query;
+      const user = req.query.user?.toString().trim().toLowerCase();
       
       if (!user) {
         return res.status(400).json({ error: 'Falta el parámetro user' });
@@ -48,7 +48,8 @@ export default async function handler(req: any, res: any) {
     }
 
     if (req.method === 'POST') {
-      const { user, pills, name } = req.body;
+      const user = req.body.user?.toString().trim().toLowerCase();
+      const { pills, name } = req.body;
 
       if (!user) {
         return res.status(400).json({ error: 'Se requiere user' });

@@ -9,8 +9,9 @@ export function usePills() {
 
   // Cargar inicial y sincronizar
   useEffect(() => {
-    const code = localStorage.getItem('pillapp_secret');
-    if (code) {
+    const rawCode = localStorage.getItem('pillapp_secret');
+    if (rawCode) {
+      const code = rawCode.trim().toLowerCase();
       setSecretCode(code);
       
       const loadAndSync = async () => {
@@ -61,9 +62,10 @@ export function usePills() {
   }, [secretCode]); // Se dispara cuando cambia el código (login/logout)
 
   const saveSecretCode = (code: string, name?: string) => {
-    localStorage.setItem('pillapp_secret', code);
-    if (name) localStorage.setItem(`pillapp_userName_${code}`, name);
-    setSecretCode(code);
+    const normalizedCode = code.trim().toLowerCase();
+    localStorage.setItem('pillapp_secret', normalizedCode);
+    if (name) localStorage.setItem(`pillapp_userName_${normalizedCode}`, name);
+    setSecretCode(normalizedCode);
     
     // Cargar pastillas locales inmediatamente para evitar pantalla vacía
     const saved = localStorage.getItem(`pillapp_pills_${code}`);
