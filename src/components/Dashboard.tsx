@@ -266,13 +266,12 @@ export function Dashboard({
 
   return (
     <div className={cn(
-      "min-h-screen w-full font-sans p-4 md:p-12",
-      "bg-[url('/bg.png')] bg-cover bg-center"
+      "min-h-screen w-full font-sans bg-[url('/bg.png')] bg-cover bg-center py-8 px-4"
     )}>
       {/* Recuadro de la App - Estilo Redondeado Premium */}
       <div className={cn(
-        "mx-auto w-full max-w-md flex flex-col relative transition-all duration-500 shadow-[0_0_80px_rgba(0,0,0,0.4)] z-10",
-        "rounded-[3rem] border-4 border-white/20 overflow-y-visible",
+        "mx-auto w-full max-w-md relative transition-all duration-500 shadow-[0_0_80px_rgba(0,0,0,0.4)] z-10",
+        "rounded-[3rem] border-4 border-white/20 bg-clip-border",
         darkMode ? "bg-[#0c141d]/95 text-white" : "bg-[#f0f9ff]/95 text-slate-900"
       )}>
         {/* Header */}
@@ -411,7 +410,8 @@ export function Dashboard({
         </header>
         
         {/* Content Area */}
-        <div className="px-4 pt-4 pb-32">
+        <div className="px-4 pt-4 pb-64">
+          <div className="h-4 w-full" /> {/* Spacer */}
           {/* Main */}
           <main className="max-w-md mx-auto space-y-6">
         {isAdmin && activeView === 'admin' ? (
