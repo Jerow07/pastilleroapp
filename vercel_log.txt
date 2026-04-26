@@ -1,0 +1,61 @@
+Loading scopes…
+Searching for existing projects…
+Linked to jeronimo-s-projects-101430f9/pastilleroapp (created .vercel)
+Retrieving project…
+> Overwriting existing .env.local file
+> Downloading `development` Environment Variables for jeronimo-s-projects-101430f9/pastilleroapp
+Downloading
+
+Changes:
++ VERCEL_OIDC_TOKEN (Updated)
+
+Updated .env.local file  [371ms]
+Retrieving project…
+Deploying jeronimo-s-projects-101430f9/pastilleroapp
+Uploading [--------------------] (0.0B/443B)
+Uploading [====================] (443.0B/443B)
+Inspect: https://vercel.com/jeronimo-s-projects-101430f9/pastilleroapp/CesUfsDa9MtFPGMYFv7umjFNVyax [3s]
+Preview: https://pastilleroapp-3fubmq1w9-jeronimo-s-projects-101430f9.vercel.app [3s]
+https://pastilleroapp-3fubmq1w9-jeronimo-s-projects-101430f9.vercel.appBuilding...
+Building...
+Building: Running build in Washington, D.C., USA (East) – iad1
+Building: Build machine configuration: 2 cores, 8 GB
+Building: Retrieving list of deployment files...
+Building: Previous build caches not available.
+Building: Downloading 60 deployment files...
+Building: Running "vercel build"
+Building: Vercel CLI 51.6.1
+Building: Installing dependencies...
+Building: npm error code ERESOLVE
+Building: npm error ERESOLVE could not resolve
+Building: npm error
+Building: npm error While resolving: vite-plugin-pwa@1.2.0
+Building: npm error Found: vite@8.0.10
+Building: npm error node_modules/vite
+Building: npm error   dev vite@"^8.0.10" from the root project
+Building: npm error   peer vite@"^5.2.0 || ^6 || ^7 || ^8" from @tailwindcss/vite@4.2.4
+Building: npm error   node_modules/@tailwindcss/vite
+Building: npm error     @tailwindcss/vite@"^4.2.4" from the root project
+Building: npm error   1 more (@vitejs/plugin-react)
+Building: npm error
+Building: npm error Could not resolve dependency:
+Building: npm error peer vite@"^3.1.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0" from vite-plugin-pwa@1.2.0
+Building: npm error node_modules/vite-plugin-pwa
+Building: npm error   vite-plugin-pwa@"^1.2.0" from the root project
+Building: npm error
+Building: npm error Conflicting peer dependency: vite@7.3.2
+Building: npm error node_modules/vite
+Building: npm error   peer vite@"^3.1.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0" from vite-plugin-pwa@1.2.0
+Building: npm error   node_modules/vite-plugin-pwa
+Building: npm error     vite-plugin-pwa@"^1.2.0" from the root project
+Building: npm error
+Building: npm error Fix the upstream dependency conflict, or retry
+Building: npm error this command with --force or --legacy-peer-deps
+Building: npm error to accept an incorrect (and potentially broken) dependency resolution.
+Building: npm error
+Building: npm error
+Building: npm error For a full report see:
+Building: npm error /vercel/.npm/_logs/2026-04-26T02_38_17_025Z-eresolve-report.txt
+Building: npm error A complete log of this run can be found in: /vercel/.npm/_logs/2026-04-26T02_38_17_025Z-debug-0.log
+Building: Error: Command "npm install" exited with 1
+Error: Command "npm install" exited with 1
