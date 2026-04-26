@@ -65,6 +65,15 @@ export function usePills() {
     if (name) localStorage.setItem(`pillapp_userName_${code}`, name);
     setSecretCode(code);
     
+    // Cargar pastillas locales inmediatamente para evitar pantalla vacía
+    const saved = localStorage.getItem(`pillapp_pills_${code}`);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) setPills(parsed);
+      } catch (e) {}
+    }
+
     // Registrar el nombre en la nube en segundo plano
     if (name) {
       fetch('/api/pills', {
