@@ -1,28 +1,35 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-export default defineConfig({
-  server: {
-    port: 3000,
-    host: true
-  },
-  plugins: [
-    tailwindcss(),
-    react(),
-    {
-      name: 'api-middleware',
-      configureServer(server) {
-        // Lazy-load Redis only in dev server (never during build)
-        let redis: any = null;
-        async function getRedis() {
-          if (!redis) {
-            const { default: Redis } = await import('ioredis');
-            redis = new Redis(process.env.pastilleroapp_REDIS_URL || process.env.REDIS_URL || '');
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  
+  return {
+    server: {
+      port: 3000,
+      host: true
+    },
+    plugins: [
+      tailwindcss(),
+      react(),
+      {
+        name: 'api-middleware',
+        configureServer(server) {
+          // Lazy-load Redis only in dev server (never during build)
+          let redis: any = null;
+          async function getRedis() {
+            if (!redis) {
+              const { default: Redis } = await import('ioredis');
+              const redisUrl = env.pastilleroapp_REDIS_URL || env.REDIS_URL || '';
+              if (!redisUrl) {
+                console.warn('⚠️ No Redis URL found in .env files');
+              }
+              redis = new Redis(redisUrl);
+            }
+            return redis;
           }
-          return redis;
-        }
 
         server.middlewares.use(async (req, res, next) => {
           const url = req.url || '';
@@ -98,4 +105,5 @@ export default defineConfig({
       }
     })
   ]
+  }
 })
