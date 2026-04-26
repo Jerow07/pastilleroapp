@@ -18,7 +18,6 @@ export default defineConfig(({ mode }) => {
         name: 'api-middleware',
         configureServer(server) {
           // Lazy-load Redis only in dev server (never during build)
-        // Lazy-load Redis only in dev server (never during build)
         let redis: any = null;
         async function getRedis() {
           if (!redis) {
@@ -90,8 +89,77 @@ export default defineConfig(({ mode }) => {
           }
           
           if (url.startsWith('/api/subscribe')) {
-            res.setHeader('Content-Type', 'application/json');
-            return res.end(JSON.stringify({ success: true }));
+            let body = '';
+            req.on('data', chunk => body += chunk);
+            req.on('end', async () => {
+              try {
+                const { user, subscription } = JSON.parse(body);
+                if (!user || !subscription) {
+                  res.statusCode = 400;
+                  return res.end(JSON.stringify({ error: 'Missing user or subscription' }));
+                }
+                const redis = await getRedis();
+                const key = `pillapp:user:${user.toLowerCase()}:subscriptions`;
+                const rawData = await redis.get(key);
+                const subs = rawData ? JSON.parse(rawData) : [];
+                if (!subs.find((s: any) => s.endpoint === subscription.endpoint)) {
+                  subs.push(subscription);
+                  await redis.set(key, JSON.stringify(subs));
+                }
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ success: true }));
+              } catch (e) {
+                res.statusCode = 500;
+                res.end(JSON.stringify({ error: 'Subscribe error' }));
+              }
+            });
+            return;
+          }
+
+          if (url.startsWith('/api/test-push')) {
+            let body = '';
+            req.on('data', chunk => body += chunk);
+            req.on('end', async () => {
+              try {
+                const { user } = JSON.parse(body);
+                const redis = await getRedis();
+                const subKey = `pillapp:user:${user?.toLowerCase()}:subscriptions`;
+                const rawSubs = await redis.get(subKey);
+                if (!rawSubs) {
+                  res.statusCode = 404;
+                  return res.end(JSON.stringify({ error: 'No subscriptions found for this user' }));
+                }
+                const subs = JSON.parse(rawSubs);
+                const { default: webpush } = await import('web-push');
+                webpush.setVapidDetails(
+                  'mailto:jeronimo@example.com',
+                  env.VAPID_PUBLIC_KEY || "BNmvP2Pkwh_HsZOVNyh0JSH2oBZAWjODRgauJ-yum6IMbZudPhnOiUZKQcMYr8LuecRC92-ZZb-F-p8LC6p98G4",
+                  env.VAPID_PRIVATE_KEY || "AbgQ_mz1bE1tg9HLvocXnyAdAp7v6ocNn1LP5O7FpRI"
+                );
+                let sent = 0;
+                for (const sub of subs) {
+                  try {
+                    await webpush.sendNotification(sub, JSON.stringify({
+                      title: '🧪 Prueba de Notificación',
+                      body: '¡Excelente! Tu celular está correctamente vinculado.',
+                      icon: '/pwa-192x192.png',
+                      badge: '/favicon.png',
+                      data: { url: '/' }
+                    }));
+                    sent++;
+                  } catch (pushErr) {
+                    console.error('Error sending push to endpoint:', sub.endpoint, pushErr);
+                  }
+                }
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ success: true, sent }));
+              } catch (e) {
+                console.error('Test Push Error:', e);
+                res.statusCode = 500;
+                res.end(JSON.stringify({ error: 'Test push error' }));
+              }
+            });
+            return;
           }
 
           next();
@@ -99,7 +167,14 @@ export default defineConfig(({ mode }) => {
       }
     },
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
       registerType: 'autoUpdate',
+      devOptions: {
+        enabled: true,
+        type: 'module'
+      },
       manifest: {
         name: 'Pastillero Virtual',
         short_name: 'Pastillero',

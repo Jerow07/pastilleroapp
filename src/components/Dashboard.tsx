@@ -176,9 +176,11 @@ export default function Dashboard({
           if (!notificationsEnabled) onToggleNotifications();
         }
       } else {
-        // Aunque ya tenga permiso, intentamos suscribir de nuevo para asegurar que el server tenga la sub
-        if (!notificationsEnabled) {
+        // Aseguramos la suscripción si tenemos permiso
+        try {
           await subscribeToPush();
+        } catch (e) {
+          console.error("Error al suscribir:", e);
         }
         onToggleNotifications();
       }
