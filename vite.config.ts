@@ -48,8 +48,9 @@ export default defineConfig(({ mode }) => {
                   return res.end(JSON.stringify(usersInfo));
                 }
 
-                const user = parsedUrl.searchParams.get('user');
+                const user = parsedUrl.searchParams.get('user')?.trim().toLowerCase();
                 const data = await redis.get(`pillapp:user:${user}:pills`);
+                console.log(`[GET] User: ${user}, Pills found: ${data ? 'Yes' : 'No'}`);
                 res.setHeader('Content-Type', 'application/json');
                 return res.end(data || '[]');
               }
@@ -59,13 +60,20 @@ export default defineConfig(({ mode }) => {
                 req.on('data', chunk => body += chunk);
                 req.on('end', async () => {
                   try {
-                    const { user, pills, name } = JSON.parse(body);
+                    const payload = JSON.parse(body);
+                    const user = payload.user?.trim().toLowerCase();
+                    const { pills, name } = payload;
+                    
+                    console.log(`[POST] User: ${user}, Syncing pills: ${pills ? pills.length : 'No'}`);
+                    
                     await redis.sadd('pillapp:all_users', user);
                     if (name) await redis.hset('pillapp:user_names', user, name);
                     if (pills) await redis.set(`pillapp:user:${user}:pills`, JSON.stringify(pills));
+                    
                     res.setHeader('Content-Type', 'application/json');
                     res.end(JSON.stringify({ success: true }));
                   } catch (e) {
+                    console.error('POST Parse Error:', e);
                     res.statusCode = 500;
                     res.end(JSON.stringify({ error: 'Post error' }));
                   }
