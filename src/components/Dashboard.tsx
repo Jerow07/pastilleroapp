@@ -496,15 +496,32 @@ export default function Dashboard({
                       ? "bg-[#121214] border-cyan-500 shadow-[0_0_15px_rgba(34,211,238,0.1)]" 
                       : "bg-white border-blue-100 shadow-[0_4px_15px_rgba(186,230,253,0.3)]"
                   )}>
-                    <div className="flex flex-col">
-                      <span className={cn(
-                        "font-black tracking-tight uppercase italic text-lg leading-tight",
-                        darkMode ? "text-white" : "text-blue-900"
-                      )}>{userName}</span>
-                      <span className={cn(
-                        "text-[10px] font-bold uppercase tracking-widest",
-                        darkMode ? "text-cyan-400" : "text-blue-400"
-                      )}>{userObj.code}</span>
+                    <div className="flex justify-between items-center">
+                      <div className="flex flex-col">
+                        <span className={cn(
+                          "font-black tracking-tight uppercase italic text-lg leading-tight",
+                          darkMode ? "text-white" : "text-blue-900"
+                        )}>{userName}</span>
+                        <span className={cn(
+                          "text-[10px] font-bold uppercase tracking-widest",
+                          darkMode ? "text-cyan-400" : "text-blue-400"
+                        )}>{userObj.code}</span>
+                      </div>
+                      {userObj.code !== 'admin-jeronimo' && (
+                        <button 
+                          onClick={async () => {
+                            if (window.confirm(`¿Seguro que quieres borrar a ${userName} y todas sus pastillas?`)) {
+                              const res = await fetch(`/api/users?user=${userObj.code}`, { method: 'DELETE' });
+                              if (res.ok) {
+                                setAdminUsers(prev => prev.filter(u => u.code !== userObj.code));
+                              }
+                            }
+                          }}
+                          className="p-2 bg-red-500/10 text-red-500 border-2 border-red-500/50 rounded-xl hover:bg-red-500 hover:text-white transition-all active:scale-95"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 );

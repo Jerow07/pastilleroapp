@@ -55,6 +55,20 @@ export default defineConfig(({ mode }) => {
                 return res.end(data || '[]');
               }
 
+              if (req.method === 'DELETE' && parsedUrl.pathname === '/api/users') {
+                const user = parsedUrl.searchParams.get('user')?.trim().toLowerCase();
+                if (user && user !== 'admin-jeronimo') {
+                  await redis.srem('pillapp:all_users', user);
+                  await redis.hdel('pillapp:user_names', user);
+                  await redis.del(`pillapp:user:${user}:pills`);
+                  await redis.del(`pillapp:user:${user}:subscriptions`);
+                  res.setHeader('Content-Type', 'application/json');
+                  return res.end(JSON.stringify({ success: true }));
+                }
+                res.statusCode = 400;
+                return res.end(JSON.stringify({ error: 'Cannot delete user' }));
+              }
+
               if (req.method === 'POST') {
                 let body = '';
                 req.on('data', chunk => body += chunk);
