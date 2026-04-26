@@ -113,60 +113,65 @@ export function usePills() {
   };
 
   const addPill = useCallback((pill: Pill) => {
-    const newPills = [...pills, pill];
-    setPills(newPills);
-    syncPills(newPills);
-  }, [pills, secretCode]);
+    console.log('Adding pill:', pill.name);
+    setPills(prev => {
+      const next = [...prev, pill];
+      syncPills(next);
+      return next;
+    });
+  }, [secretCode]);
 
   const updatePill = useCallback((updatedPill: Pill) => {
-    const newPills = pills.map((p) => p.id === updatedPill.id ? updatedPill : p);
-    setPills(newPills);
-    syncPills(newPills);
-  }, [pills, secretCode]);
+    setPills(prev => {
+      const next = prev.map((p) => p.id === updatedPill.id ? updatedPill : p);
+      syncPills(next);
+      return next;
+    });
+  }, [secretCode]);
 
   const togglePillTaken = useCallback((pillId: string, dateStr: string) => {
-    const newPills = pills.map((p) => {
-      if (p.id === pillId) {
-        const isTaken = p.takenDates.includes(dateStr);
-        const newDates = isTaken
-          ? p.takenDates.filter(d => d !== dateStr) // untake
-          : [...p.takenDates, dateStr]; // take
-        
-        // Manejo de Stock (Baúl)
-        let newTotalStock = p.totalStock;
-        if (p.stockEnabled && p.totalStock !== undefined && p.quantityPerDose !== undefined) {
-          if (!isTaken) {
-            // Estamos marcando como tomada -> Restar stock
-            newTotalStock = Math.max(0, p.totalStock - p.quantityPerDose);
-            
-            // Notificación de stock bajo (3 dosis o menos)
-            if (newTotalStock <= p.quantityPerDose * 3) {
-              if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification(`¡Stock bajo: ${p.name}!`, {
-                  body: `Te quedan solo ${newTotalStock} ${p.unit || 'unidades'} en el baúl.`,
-                  icon: '/pwa-192x192.png'
-                });
+    setPills(prev => {
+      const next = prev.map((p) => {
+        if (p.id === pillId) {
+          const isTaken = p.takenDates.includes(dateStr);
+          const newDates = isTaken
+            ? p.takenDates.filter(d => d !== dateStr)
+            : [...p.takenDates, dateStr];
+          
+          let newTotalStock = p.totalStock;
+          if (p.stockEnabled && p.totalStock !== undefined && p.quantityPerDose !== undefined) {
+            if (!isTaken) {
+              newTotalStock = Math.max(0, p.totalStock - p.quantityPerDose);
+              
+              if (newTotalStock <= p.quantityPerDose * 3) {
+                if ('Notification' in window && Notification.permission === 'granted') {
+                  new Notification(`¡Stock bajo: ${p.name}!`, {
+                    body: `Te quedan solo ${newTotalStock} ${p.unit || 'unidades'} en el baúl.`,
+                    icon: '/pwa-192x192.png'
+                  });
+                }
               }
+            } else {
+              newTotalStock = p.totalStock + p.quantityPerDose;
             }
-          } else {
-            // Estamos desmarcando -> Devolver stock
-            newTotalStock = p.totalStock + p.quantityPerDose;
           }
-        }
 
-        return { ...p, takenDates: newDates, totalStock: newTotalStock };
-      }
-      return p;
+          return { ...p, takenDates: newDates, totalStock: newTotalStock };
+        }
+        return p;
+      });
+      syncPills(next);
+      return next;
     });
-    setPills(newPills);
-    syncPills(newPills);
-  }, [pills, secretCode]);
+  }, [secretCode]);
 
   const deletePill = useCallback((pillId: string) => {
-    const newPills = pills.filter(p => p.id !== pillId);
-    setPills(newPills);
-    syncPills(newPills);
-  }, [pills, secretCode]);
+    setPills(prev => {
+      const next = prev.filter(p => p.id !== pillId);
+      syncPills(next);
+      return next;
+    });
+  }, [secretCode]);
 
   return {
     secretCode,
