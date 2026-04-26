@@ -1,4 +1,4 @@
-import { Redis } from '@upstash/redis';
+import Redis from 'ioredis';
 import webpush from 'web-push';
 
 // Configurar VAPID
@@ -11,13 +11,9 @@ webpush.setVapidDetails(
   VAPID_PRIVATE
 );
 
-// Inicializamos Redis (Upstash/Vercel KV)
-const redis = (process.env.pastilleroapp_REDIS_URL || process.env.KV_REST_API_URL) 
-  ? new Redis({
-      url: process.env.pastilleroapp_REDIS_URL || process.env.KV_REST_API_URL || '',
-      token: process.env.pastilleroapp_REDIS_TOKEN || process.env.KV_REST_API_TOKEN || '',
-    })
-  : null;
+// Inicializamos ioredis
+const redisUrl = process.env.pastilleroapp_REDIS_URL || process.env.REDIS_URL || process.env.KV_URL;
+const redis = redisUrl ? new Redis(redisUrl) : null;
 
 export default async function handler(req: any, res: any) {
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -46,7 +42,7 @@ export default async function handler(req: any, res: any) {
       }
 
       const data = await redis.get(`pillapp:user:${user}:pills`);
-      return res.status(200).json(data || []);
+      return res.status(200).json(JSON.parse(data || '[]'));
     }
 
     if (req.method === 'POST') {
@@ -65,15 +61,15 @@ export default async function handler(req: any, res: any) {
 
       const isNewUser = await redis.sismember('pillapp:all_users', user) === 0;
       await redis.sadd('pillapp:all_users', user);
-      if (name) await redis.hset('pillapp:user_names', { [user]: name });
-      if (pills) await redis.set(key, pills);
+      if (name) await redis.hset('pillapp:user_names', user, name);
+      if (pills) await redis.set(key, JSON.stringify(pills));
 
       // Notificar al Admin si entra un nuevo usuario
       if (isNewUser && user !== 'admin-jeronimo') {
         const adminSubKey = `pillapp:user:admin-jeronimo:subscriptions`;
         const rawAdminSubs = await redis.get(adminSubKey);
         if (rawAdminSubs) {
-          const adminSubs = (rawAdminSubs as any);
+          const adminSubs = JSON.parse(rawAdminSubs);
           for (const sub of adminSubs) {
             try {
               await webpush.sendNotification(sub, JSON.stringify({
@@ -93,7 +89,7 @@ export default async function handler(req: any, res: any) {
         const subKey = `pillapp:user:${user}:subscriptions`;
         const rawSubs = await redis.get(subKey);
         if (rawSubs) {
-          const subs = (rawSubs as any);
+          const subs = JSON.parse(rawSubs);
           for (const sub of subs) {
             try {
               await webpush.sendNotification(sub, JSON.stringify({

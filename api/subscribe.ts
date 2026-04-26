@@ -1,11 +1,7 @@
-import { Redis } from '@upstash/redis';
+import Redis from 'ioredis';
 
-const redis = (process.env.pastilleroapp_REDIS_URL || process.env.KV_REST_API_URL) 
-  ? new Redis({
-      url: process.env.pastilleroapp_REDIS_URL || process.env.KV_REST_API_URL || '',
-      token: process.env.pastilleroapp_REDIS_TOKEN || process.env.KV_REST_API_TOKEN || '',
-    })
-  : null;
+const redisUrl = process.env.pastilleroapp_REDIS_URL || process.env.REDIS_URL || process.env.KV_URL;
+const redis = redisUrl ? new Redis(redisUrl) : null;
 
 export default async function handler(req: any, res: any) {
   if (req.method === 'OPTIONS') {
@@ -28,11 +24,12 @@ export default async function handler(req: any, res: any) {
         return res.status(500).json({ error: 'Redis no configurado' });
       }
 
-      const subs: any[] = (await redis.get(key)) || [];
+      const rawData = await redis.get(key);
+      const subs: any[] = rawData ? JSON.parse(rawData) : [];
       
       if (!subs.find((s: any) => s.endpoint === subscription.endpoint)) {
         subs.push(subscription);
-        await redis.set(key, subs);
+        await redis.set(key, JSON.stringify(subs));
       }
 
       return res.status(200).json({ success: true });
