@@ -90,18 +90,32 @@ export function Dashboard({
   const currentDayOfWeek = getDay(selectedDate);
 
   useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    const fetchUsers = () => {
+      if (isAdmin && activeView === 'admin') {
+        fetch(`/api/users`)
+          .then(res => res.json())
+          .then(data => {
+            if (Array.isArray(data)) {
+              setAdminUsers(data);
+            }
+          })
+          .catch(() => {});
+      }
+    };
+
     if (isAdmin && activeView === 'admin') {
       setAdminLoading(true);
-      fetch(`/api/users`)
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) {
-            setAdminUsers(data);
-          }
-          setAdminLoading(false);
-        })
-        .catch(() => setAdminLoading(false));
+      fetchUsers();
+      const timer = setTimeout(() => setAdminLoading(false), 1000);
+      
+      interval = setInterval(fetchUsers, 10000); // Actualiza cada 10 segundos
     }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [activeView, isAdmin]);
   
   const [notifPerm, setNotifPerm] = useState<NotificationPermission>('default');
