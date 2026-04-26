@@ -2,11 +2,6 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
-import Redis from 'ioredis'
-
-// Configuración única de Redis para desarrollo
-const redisUrl = "redis://default:6SNoQEYX9Fp4HhZ9shmBJkGpuXKIs9NN@redis-17812.crce278.sa-east-1-2.ec2.cloud.redislabs.com:17812";
-const redis = new Redis(redisUrl);
 
 export default defineConfig({
   server: {
@@ -19,18 +14,29 @@ export default defineConfig({
     {
       name: 'api-middleware',
       configureServer(server) {
+        // Lazy-load Redis only in dev server (never during build)
+        let redis: any = null;
+        async function getRedis() {
+          if (!redis) {
+            const { default: Redis } = await import('ioredis');
+            redis = new Redis("redis://default:6SNoQEYX9Fp4HhZ9shmBJkGpuXKIs9NN@redis-17812.crce278.sa-east-1-2.ec2.cloud.redislabs.com:17812");
+          }
+          return redis;
+        }
+
         server.middlewares.use(async (req, res, next) => {
           const url = req.url || '';
           
           if (url.startsWith('/api/pills') || url.startsWith('/api/users')) {
             const parsedUrl = new URL(url, `http://${req.headers.host}`);
+            const redis = await getRedis();
             
             try {
               if (req.method === 'GET') {
                 if (parsedUrl.pathname === '/api/users') {
                   const codes = await redis.smembers('pillapp:all_users');
                   const names = await redis.hgetall('pillapp:user_names');
-                  const usersInfo = codes.map(code => ({ code, name: names[code] || 'Anónimo' }));
+                  const usersInfo = codes.map((code: string) => ({ code, name: names[code] || 'Anónimo' }));
                   res.setHeader('Content-Type', 'application/json');
                   return res.end(JSON.stringify(usersInfo));
                 }
