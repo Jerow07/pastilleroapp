@@ -22,6 +22,13 @@ const COLORS = [
   'bg-red-300'
 ];
 
+const EMOJI_LABELS: Record<string, { label: string, gender: 'm' | 'f' }> = {
+  '💊': { label: 'Pastilla', gender: 'f' },
+  '🧪': { label: 'Jarabe', gender: 'm' },
+  '💉': { label: 'Inyección', gender: 'f' },
+  '🧴': { label: 'Emulsión', gender: 'f' }
+};
+
 export function AddPillModal({ onSave, onClose, darkMode, pill }: AddPillModalProps) {
   const [name, setName] = useState(pill?.name || '');
   const [dose, setDose] = useState(pill?.dose || '');
@@ -36,6 +43,9 @@ export function AddPillModal({ onSave, onClose, darkMode, pill }: AddPillModalPr
   const [totalStock, setTotalStock] = useState(pill?.totalStock?.toString() || '0');
   const [quantityPerDose, setQuantityPerDose] = useState(pill?.quantityPerDose?.toString() || '1');
   const [unit, setUnit] = useState(pill?.unit || 'pastillas');
+
+  const currentType = EMOJI_LABELS[selectedEmoji] || { label: 'Medicamento', gender: 'm' };
+  const actionText = pill ? 'Editar' : (currentType.gender === 'f' ? 'Nueva' : 'Nuevo');
 
   const days = [
     { id: 1, label: 'L' },
@@ -90,7 +100,7 @@ export function AddPillModal({ onSave, onClose, darkMode, pill }: AddPillModalPr
           darkMode ? "bg-[#1c2e3f] border-orange-300" : "bg-orange-50 border-orange-100"
         )}>
           <h2 className="text-2xl font-black uppercase italic tracking-tight">
-            {pill ? 'Editar Pastilla' : 'Nueva Pastilla'}
+            {actionText} {currentType.label}
           </h2>
           <button onClick={onClose} className={cn(
             "p-2 border-2 rounded-full transition-all active:scale-90",
@@ -332,7 +342,7 @@ export function AddPillModal({ onSave, onClose, darkMode, pill }: AddPillModalPr
             )}
           >
             <Check size={24} strokeWidth={4} />
-            Guardar Pastilla
+            Guardar {currentType.label}
           </button>
         </div>
       </div>
