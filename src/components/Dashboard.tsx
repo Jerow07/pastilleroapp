@@ -21,7 +21,8 @@ import {
   Share2,
   Users,
   Cloud,
-  RefreshCw
+  RefreshCw,
+  Calendar
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { CalendarModal } from './CalendarModal';
@@ -294,10 +295,16 @@ export function Dashboard({
             <button 
               onClick={() => setIsCalendarOpen(true)} 
               className={cn(
-                "font-bold text-sm text-left uppercase transition-all",
+                "font-bold text-sm text-left uppercase transition-all flex items-center gap-2 group",
                 darkMode ? "text-white" : "text-slate-500"
               )}
             >
+              <div className={cn(
+                "p-1.5 rounded-lg border-2 transition-all group-active:scale-90",
+                darkMode ? "bg-black border-orange-900 text-orange-400" : "bg-white border-sky-100 text-sky-500 shadow-sm"
+              )}>
+                <Calendar size={14} strokeWidth={3} />
+              </div>
               {isToday(selectedDate) ? (
                 <div className="flex items-center gap-2">
                   <span className={cn(
