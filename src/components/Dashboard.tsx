@@ -287,25 +287,25 @@ export function Dashboard({
               <h1 className={cn("text-3xl font-black italic tracking-tight", darkMode ? "text-orange-300" : "text-sky-600")}>
                 {activeView === 'dashboard' ? 'Mi Pastillero' : (activeView === 'stock' ? 'El Baúl' : 'Gestión')}
               </h1>
-              <div className="flex flex-col ml-1">
+              <div className="flex flex-col ml-1 gap-1">
                 <span className="text-[8px] font-black opacity-30 uppercase tracking-widest leading-none">v1.5.0</span>
-              </div>
-              
-              {/* Sync Indicator */}
-              <div 
-                onClick={onRefresh}
-                className={cn(
-                  "flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[9px] font-black uppercase tracking-tighter transition-all duration-500 cursor-pointer active:scale-95",
-                  syncing || loading 
-                    ? (darkMode ? "bg-orange-500/10 border-orange-500/50 text-orange-400" : "bg-sky-50 border-sky-200 text-sky-500")
-                    : (darkMode ? "bg-emerald-500/10 border-emerald-500/50 text-emerald-400" : "bg-emerald-50 border-emerald-200 text-emerald-600")
-                )}>
-                {syncing || loading ? (
-                  <RefreshCw size={10} className="animate-spin" />
-                ) : (
-                  <Cloud size={10} />
-                )}
-                <span>{syncing ? 'Sincronizando' : (loading ? 'Cargando' : 'Sincronizado')}</span>
+                
+                {/* Sync Indicator */}
+                <div 
+                  onClick={onRefresh}
+                  className={cn(
+                    "flex items-center gap-1 px-1.5 py-0.5 rounded-md border text-[7px] font-black uppercase tracking-tighter transition-all duration-500 cursor-pointer active:scale-95",
+                    syncing || loading 
+                      ? (darkMode ? "bg-orange-500/10 border-orange-500/50 text-orange-400" : "bg-sky-50 border-sky-200 text-sky-500")
+                      : (darkMode ? "bg-emerald-500/10 border-emerald-500/50 text-emerald-400" : "bg-emerald-50 border-emerald-200 text-emerald-600")
+                  )}>
+                  {syncing || loading ? (
+                    <RefreshCw size={8} className="animate-spin" />
+                  ) : (
+                    <Cloud size={8} />
+                  )}
+                  <span>{syncing ? 'Sync' : (loading ? 'Cargando' : 'OK')}</span>
+                </div>
               </div>
             </div>
             <button 
