@@ -266,7 +266,7 @@ export function Dashboard({
 
   return (
     <div className={cn(
-      "min-h-screen w-full font-sans bg-[url('/bg.png')] bg-cover bg-center py-8 px-4"
+      "h-auto w-full font-sans bg-[url('/bg.png')] bg-cover bg-center py-12 px-4 scroll-smooth"
     )}>
       {/* Recuadro de la App - Estilo Redondeado Premium */}
       <div className={cn(
@@ -557,7 +557,7 @@ export function Dashboard({
                 <p className="text-[10px] mt-2 italic">Activa el control de stock al añadir una pastilla</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-4 pb-40 relative z-10">
                 {pills.filter(p => p.stockEnabled).map(pill => (
                   <div key={pill.id} className={cn(
                     "p-5 border-2 rounded-[2.5rem] flex items-center gap-4 transition-all shadow-[0_4px_15px_rgba(0,0,0,0.1)]",
