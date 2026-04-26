@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { CalendarModal } from './CalendarModal';
+import { ConfirmationModal } from './ConfirmationModal';
 import confetti from 'canvas-confetti';
 
 interface DashboardProps {
@@ -57,6 +58,7 @@ export function Dashboard({
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [userName] = useState(() => localStorage.getItem(`pillapp_userName_${secretCode}`) || 'Amigo');
   const [motivePhrase, setMotivePhrase] = useState('');
+  const [pillToDelete, setPillToDelete] = useState<Pill | null>(null);
 
   useEffect(() => {
     const phrases = [
@@ -442,9 +444,7 @@ export function Dashboard({
                           <button onClick={(e) => { e.stopPropagation(); onEditPill(pill); }} className="p-2 border-2 rounded-xl bg-white border-black shadow-[2px_2px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"><Edit2 size={16} /></button>
                           <button onClick={(e) => { 
                             e.stopPropagation(); 
-                            if (window.confirm(`¿Estás seguro de que deseas eliminar "${pill.name}"? Esto también la quitará del Baúl y dejará de aparecer en tu tratamiento diario.`)) {
-                              onDeletePill(pill.id); 
-                            }
+                            setPillToDelete(pill);
                           }} className="p-2 border-2 rounded-xl bg-white border-black text-red-600 shadow-[2px_2px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"><Trash2 size={16} /></button>
                         </div>
                       )}
@@ -454,6 +454,36 @@ export function Dashboard({
                 </div>
               );
             })}
+            {displayedPills.length === 0 && (
+              <div className={cn(
+                "flex flex-col items-center justify-center py-12 px-6 text-center border-4 border-dashed rounded-[3rem] animate-in fade-in zoom-in duration-500",
+                darkMode ? "border-orange-900/30 bg-black/20" : "border-sky-100 bg-white/50"
+              )}>
+                <div className={cn(
+                  "w-24 h-24 mb-6 rounded-full flex items-center justify-center border-4 animate-bounce duration-[3000ms]",
+                  darkMode ? "bg-[#162534] border-orange-300 text-orange-300" : "bg-sky-50 border-sky-200 text-sky-400"
+                )}>
+                  <Plus size={48} strokeWidth={3} />
+                </div>
+                <h3 className={cn("text-2xl font-black uppercase italic tracking-tight mb-2", darkMode ? "text-orange-200" : "text-sky-800")}>
+                  ¡Nada por aquí!
+                </h3>
+                <p className={cn("text-sm font-bold opacity-60 mb-8 max-w-[200px]", darkMode ? "text-orange-100" : "text-sky-600")}>
+                  No tienes pastillas programadas para {isToday(selectedDate) ? 'hoy' : 'este día'}.
+                </p>
+                <button 
+                  onClick={onAddPill}
+                  className={cn(
+                    "px-8 py-4 rounded-2xl border-4 font-black uppercase tracking-widest transition-all active:scale-95 shadow-xl flex items-center gap-2",
+                    darkMode 
+                      ? "bg-orange-300 border-white text-black" 
+                      : "bg-orange-400 border-orange-200 text-white"
+                  )}
+                >
+                  <Plus size={20} strokeWidth={4} /> Agregar Pastilla
+                </button>
+              </div>
+            )}
           </div>
         ) : (activeView === 'stock') ? (
           <div className="space-y-6">
@@ -549,9 +579,7 @@ export function Dashboard({
                       <button 
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (window.confirm(`¿Eliminar "${pill.name}" del baúl y de tu tratamiento?`)) {
-                            onDeletePill(pill.id);
-                          }
+                          setPillToDelete(pill);
                         }} 
                         className={cn(
                           "p-2 border-2 rounded-xl transition-all active:scale-95 flex items-center justify-center",
@@ -657,6 +685,20 @@ export function Dashboard({
           pills={pills}
         />
       )}
+
+      <ConfirmationModal 
+        isOpen={!!pillToDelete}
+        title="¿Eliminar pastilla?"
+        message={`¿Estás seguro de que deseas eliminar "${pillToDelete?.name}"? Esto también la quitará del Baúl y dejará de aparecer en tu tratamiento diario.`}
+        onConfirm={() => {
+          if (pillToDelete) {
+            onDeletePill(pillToDelete.id);
+            setPillToDelete(null);
+          }
+        }}
+        onCancel={() => setPillToDelete(null)}
+        darkMode={darkMode}
+      />
       </div>
     </div>
   );
