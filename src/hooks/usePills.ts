@@ -29,10 +29,15 @@ export function usePills() {
         setPills(localPills);
 
         // 2. Traer de la nube y MERGE
+        console.log(`[Sync] Intentando sincronizar código: ${code}`);
         try {
           const res = await fetch(`/api/pills?user=${code}`);
+          console.log(`[Sync] Respuesta API: ${res.status}`);
+          
           if (res.ok) {
             const cloudData = await res.json();
+            console.log(`[Sync] Datos en nube: ${Array.isArray(cloudData) ? cloudData.length : 'Error'} items`);
+            
             if (Array.isArray(cloudData)) {
               // Mezclamos por ID para no perder nada de ningún dispositivo
               const mergedMap = new Map();
@@ -43,17 +48,21 @@ export function usePills() {
               // Luego metemos lo de la nube (si el ID ya existe, la nube manda porque suele ser lo más reciente)
               cloudData.forEach(p => {
                 const existing = mergedMap.get(p.id);
-                if (!existing || (p.takenDates.length >= existing.takenDates.length)) {
+                // Si no existe, o si la versión de la nube tiene más registros de tomas, la nube gana
+                if (!existing || (Array.isArray(p.takenDates) && p.takenDates.length >= (existing.takenDates?.length || 0))) {
                   mergedMap.set(p.id, p);
                 }
               });
 
               const mergedPills = Array.from(mergedMap.values());
+              console.log(`[Sync] Resultado de la mezcla: ${mergedPills.length} items`);
+              
               setPills(mergedPills);
               localStorage.setItem(`pillapp_pills_${code}`, JSON.stringify(mergedPills));
 
               // Si el resultado de la mezcla es distinto a lo que había en la nube, sincronizamos "para arriba"
-              if (mergedPills.length !== cloudData.length) {
+              if (mergedPills.length !== cloudData.length || cloudData.length === 0) {
+                console.log(`[Sync] Subiendo mezcla a la nube...`);
                 await fetch('/api/pills', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
@@ -63,7 +72,7 @@ export function usePills() {
             }
           }
         } catch (err) {
-          console.error('Error en sincronización inicial:', err);
+          console.error('[Sync] Error crítico de sincronización:', err);
         } finally {
           setLoading(false);
         }
