@@ -19,7 +19,8 @@ export default function App() {
     addPill, 
     updatePill,
     togglePillTaken, 
-    deletePill 
+    deletePill,
+    refresh
   } = usePills();
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -110,6 +111,7 @@ export default function App() {
         syncing={syncing}
         notificationsEnabled={notificationsEnabled}
         onToggleNotifications={toggleNotifications}
+        onRefresh={refresh}
       />
 
       {(isAddModalOpen || editingPill) && (

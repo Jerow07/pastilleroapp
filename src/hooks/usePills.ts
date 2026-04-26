@@ -63,16 +63,22 @@ export function usePills() {
               // Si el resultado de la mezcla es distinto a lo que había en la nube, sincronizamos "para arriba"
               if (mergedPills.length !== cloudData.length || cloudData.length === 0) {
                 console.log(`[Sync] Subiendo mezcla a la nube...`);
-                await fetch('/api/pills', {
+                const postRes = await fetch('/api/pills', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ user: code, pills: mergedPills }),
                 });
+                if (!postRes.ok) {
+                  throw new Error(`Error en POST: ${postRes.status}`);
+                }
               }
             }
+          } else {
+            throw new Error(`Error en GET: ${res.status}`);
           }
         } catch (err) {
           console.error('[Sync] Error crítico de sincronización:', err);
+          window.alert(`⚠️ Error de Sincronización: No se pudo conectar con la base de datos. Verifica tu conexión o las variables de entorno.`);
         } finally {
           setLoading(false);
         }
@@ -204,6 +210,13 @@ export function usePills() {
     addPill,
     updatePill,
     togglePillTaken,
-    deletePill
+    deletePill,
+    refresh: () => {
+      const code = localStorage.getItem('pillapp_secret');
+      if (code) {
+        setSecretCode(null); // Force re-run of effect
+        setTimeout(() => setSecretCode(code.trim().toLowerCase()), 10);
+      }
+    }
   };
 }

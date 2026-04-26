@@ -44,6 +44,7 @@ interface DashboardProps {
   syncing: boolean;
   notificationsEnabled: boolean;
   onToggleNotifications: () => void;
+  onRefresh: () => void;
 }
 
 export function Dashboard({ 
@@ -60,7 +61,8 @@ export function Dashboard({
   loading,
   syncing,
   notificationsEnabled,
-  onToggleNotifications
+  onToggleNotifications,
+  onRefresh
 }: DashboardProps) {
   const [activeView, setActiveView] = useState<'dashboard' | 'stock' | 'admin'>('dashboard');
   const [adminUsers, setAdminUsers] = useState<{code: string, name: string}[]>([]);
@@ -291,12 +293,14 @@ export function Dashboard({
               </div>
               
               {/* Sync Indicator */}
-              <div className={cn(
-                "flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[9px] font-black uppercase tracking-tighter transition-all duration-500",
-                syncing || loading 
-                  ? (darkMode ? "bg-orange-500/10 border-orange-500/50 text-orange-400" : "bg-sky-50 border-sky-200 text-sky-500")
-                  : (darkMode ? "bg-emerald-500/10 border-emerald-500/50 text-emerald-400" : "bg-emerald-50 border-emerald-200 text-emerald-600")
-              )}>
+              <div 
+                onClick={onRefresh}
+                className={cn(
+                  "flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[9px] font-black uppercase tracking-tighter transition-all duration-500 cursor-pointer active:scale-95",
+                  syncing || loading 
+                    ? (darkMode ? "bg-orange-500/10 border-orange-500/50 text-orange-400" : "bg-sky-50 border-sky-200 text-sky-500")
+                    : (darkMode ? "bg-emerald-500/10 border-emerald-500/50 text-emerald-400" : "bg-emerald-50 border-emerald-200 text-emerald-600")
+                )}>
                 {syncing || loading ? (
                   <RefreshCw size={10} className="animate-spin" />
                 ) : (
