@@ -19,7 +19,9 @@ import {
   ArrowLeft,
   Edit2,
   Share2,
-  Users
+  Users,
+  Cloud,
+  RefreshCw
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { CalendarModal } from './CalendarModal';
@@ -37,6 +39,8 @@ interface DashboardProps {
   darkMode: boolean;
   toggleDarkMode: () => void;
   secretCode: string | null;
+  loading: boolean;
+  syncing: boolean;
 }
 
 export function Dashboard({ 
@@ -49,7 +53,9 @@ export function Dashboard({
   onUpdatePill,
   darkMode,
   toggleDarkMode,
-  secretCode
+  secretCode,
+  loading,
+  syncing
 }: DashboardProps) {
   const [activeView, setActiveView] = useState<'dashboard' | 'stock' | 'admin'>('dashboard');
   const [adminUsers, setAdminUsers] = useState<{code: string, name: string}[]>([]);
@@ -269,6 +275,21 @@ export function Dashboard({
               <h1 className={cn("text-3xl font-black italic tracking-tight", darkMode ? "text-orange-300" : "text-sky-600")}>
                 {activeView === 'dashboard' ? 'Mi Pastillero' : (activeView === 'stock' ? 'El Baúl' : 'Gestión')}
               </h1>
+              
+              {/* Sync Indicator */}
+              <div className={cn(
+                "flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[9px] font-black uppercase tracking-tighter transition-all duration-500",
+                syncing || loading 
+                  ? (darkMode ? "bg-orange-500/10 border-orange-500/50 text-orange-400" : "bg-sky-50 border-sky-200 text-sky-500")
+                  : (darkMode ? "bg-emerald-500/10 border-emerald-500/50 text-emerald-400" : "bg-emerald-50 border-emerald-200 text-emerald-600")
+              )}>
+                {syncing || loading ? (
+                  <RefreshCw size={10} className="animate-spin" />
+                ) : (
+                  <Cloud size={10} />
+                )}
+                <span>{syncing ? 'Sincronizando' : (loading ? 'Cargando' : 'Sincronizado')}</span>
+              </div>
             </div>
             <button 
               onClick={() => setIsCalendarOpen(true)} 

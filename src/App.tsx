@@ -14,6 +14,8 @@ export default function App() {
     saveSecretCode, 
     logout, 
     pills, 
+    loading,
+    syncing,
     addPill, 
     updatePill,
     togglePillTaken, 
@@ -90,6 +92,8 @@ export default function App() {
         darkMode={darkMode}
         toggleDarkMode={toggleDarkMode}
         secretCode={secretCode}
+        loading={loading}
+        syncing={syncing}
       />
 
       {(isAddModalOpen || editingPill) && (
