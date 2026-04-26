@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { Pill } from '../lib/types';
 import { format, addDays, subDays, isToday, getDay, startOfDay } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -99,7 +99,7 @@ export function Dashboard({
   const currentDayOfWeek = getDay(selectedDate);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: any;
 
     const fetchUsers = () => {
       if (isAdmin && activeView === 'admin') {
@@ -117,7 +117,7 @@ export function Dashboard({
     if (isAdmin && activeView === 'admin') {
       setAdminLoading(true);
       fetchUsers();
-      const timer = setTimeout(() => setAdminLoading(false), 1000);
+      setTimeout(() => setAdminLoading(false), 1000);
       
       interval = setInterval(fetchUsers, 10000); // Actualiza cada 10 segundos
 
