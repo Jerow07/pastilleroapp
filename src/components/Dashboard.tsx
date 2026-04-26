@@ -322,7 +322,7 @@ export function Dashboard({
                 {activeView === 'dashboard' ? 'Mi Pastillero' : (activeView === 'stock' ? 'El Baúl' : 'Gestión')}
               </h1>
               <div className="flex flex-col ml-1 gap-1">
-                <span className="text-[8px] font-black opacity-30 uppercase tracking-widest leading-none">v1.5.0</span>
+                <span className="text-[8px] font-black opacity-30 uppercase tracking-widest leading-none">v1.6.0</span>
                 
                 {/* Sync Indicator */}
                 <div 
