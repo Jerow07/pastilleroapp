@@ -451,7 +451,29 @@ export function Dashboard({
               </div>
               <div>
                 <h2 className="text-2xl font-black uppercase italic tracking-tight text-cyan-400">Gestión de Usuarios</h2>
-                <p className="text-[10px] font-bold opacity-50 uppercase tracking-widest text-white">Listado de Códigos Activos</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-[10px] font-bold opacity-50 uppercase tracking-widest text-white">Listado de Códigos Activos</p>
+                  <button 
+                    onClick={async () => {
+                      const secret = localStorage.getItem('pillapp_secret');
+                      if (!secret) return;
+                      const res = await fetch('/api/test-push', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user: secret })
+                      });
+                      const data = await res.json();
+                      if (data.success) {
+                        alert('¡Notificación de prueba enviada! Revisa tu celular.');
+                      } else {
+                        alert('Error: ' + (data.error || 'No se pudo enviar'));
+                      }
+                    }}
+                    className="text-[9px] font-black bg-cyan-400/20 text-cyan-400 border border-cyan-400/30 px-2 py-0.5 rounded-md hover:bg-cyan-400/30 transition-all"
+                  >
+                    PROBAR PUSH 🔔
+                  </button>
+                </div>
               </div>
             </div>
             
