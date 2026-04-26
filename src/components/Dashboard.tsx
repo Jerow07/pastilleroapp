@@ -455,30 +455,6 @@ export default function Dashboard({
                 <h2 className="text-2xl font-black uppercase italic tracking-tight text-cyan-400">Gestión de Usuarios</h2>
                 <div className="flex items-center gap-2">
                   <p className="text-[10px] font-bold opacity-50 uppercase tracking-widest text-white">Listado de Códigos Activos</p>
-                  <button 
-                    onClick={async () => {
-                      const secret = localStorage.getItem('pillapp_secret');
-                      if (!secret) return;
-                      
-                      // Forzamos la suscripción antes de probar
-                      await subscribeToPush();
-                      
-                      const res = await fetch('/api/test-push', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ user: secret })
-                      });
-                      const data = await res.json();
-                      if (data.success) {
-                        alert('¡Notificación de prueba enviada! Revisa tu celular.');
-                      } else {
-                        alert('Error: ' + (data.error || 'No se pudo enviar'));
-                      }
-                    }}
-                    className="mt-4 w-full bg-orange-500 hover:bg-orange-600 text-white font-black py-4 rounded-2xl shadow-[0_4px_15px_rgba(249,115,22,0.4)] active:scale-95 transition-all flex items-center justify-center gap-2"
-                  >
-                    <span>🔔</span> PROBAR NOTIFICACIONES PUSH
-                  </button>
                 </div>
               </div>
             </div>
@@ -509,17 +485,18 @@ export default function Dashboard({
                       </div>
                       {userObj.code !== 'admin-jeronimo' && (
                         <button 
-                          onClick={async () => {
-                            if (window.confirm(`¿Seguro que quieres borrar a ${userName} y todas sus pastillas?`)) {
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (window.confirm(`¿BORRAR USUARIO? Esta acción eliminará a ${userName} y todas sus pastillas para siempre.`)) {
                               const res = await fetch(`/api/users?user=${userObj.code}`, { method: 'DELETE' });
                               if (res.ok) {
                                 setAdminUsers(prev => prev.filter(u => u.code !== userObj.code));
                               }
                             }
                           }}
-                          className="p-2 bg-red-500/10 text-red-500 border-2 border-red-500/50 rounded-xl hover:bg-red-500 hover:text-white transition-all active:scale-95"
+                          className="flex items-center gap-1 px-3 py-2 bg-red-500 text-white font-black text-[10px] rounded-xl shadow-[0_4px_10px_rgba(239,68,68,0.3)] active:scale-90 transition-all"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={12} strokeWidth={3} /> BORRAR
                         </button>
                       )}
                     </div>
