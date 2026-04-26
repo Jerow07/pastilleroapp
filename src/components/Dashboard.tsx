@@ -111,10 +111,14 @@ export function Dashboard({
       const timer = setTimeout(() => setAdminLoading(false), 1000);
       
       interval = setInterval(fetchUsers, 10000); // Actualiza cada 10 segundos
+
+      // También actualizamos al recuperar el foco (volver a la pestaña)
+      window.addEventListener('focus', fetchUsers);
     }
 
     return () => {
       if (interval) clearInterval(interval);
+      window.removeEventListener('focus', fetchUsers);
     };
   }, [activeView, isAdmin]);
   
