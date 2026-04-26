@@ -21,12 +21,14 @@ export default defineConfig(({ mode }) => {
           let redis: any = null;
           async function getRedis() {
             if (!redis) {
-              const { default: Redis } = await import('ioredis');
-              const redisUrl = env.pastilleroapp_REDIS_URL || env.REDIS_URL || '';
-              if (!redisUrl) {
+              const { Redis } = await import('@upstash/redis');
+              const url = env.pastilleroapp_REDIS_URL || env.KV_REST_API_URL || '';
+              const token = env.pastilleroapp_REDIS_TOKEN || env.KV_REST_API_TOKEN || '';
+              
+              if (!url) {
                 console.warn('⚠️ No Redis URL found in .env files');
               }
-              redis = new Redis(redisUrl);
+              redis = new Redis({ url, token });
             }
             return redis;
           }
@@ -52,7 +54,7 @@ export default defineConfig(({ mode }) => {
                 const data = await redis.get(`pillapp:user:${user}:pills`);
                 console.log(`[GET] User: ${user}, Pills found: ${data ? 'Yes' : 'No'}`);
                 res.setHeader('Content-Type', 'application/json');
-                return res.end(data || '[]');
+                return res.end(JSON.stringify(data || []));
               }
 
               if (req.method === 'POST') {
@@ -67,8 +69,8 @@ export default defineConfig(({ mode }) => {
                     console.log(`[POST] User: ${user}, Syncing pills: ${pills ? pills.length : 'No'}`);
                     
                     await redis.sadd('pillapp:all_users', user);
-                    if (name) await redis.hset('pillapp:user_names', user, name);
-                    if (pills) await redis.set(`pillapp:user:${user}:pills`, JSON.stringify(pills));
+                    if (name) await redis.hset('pillapp:user_names', { [user]: name });
+                    if (pills) await redis.set(`pillapp:user:${user}:pills`, pills);
                     
                     res.setHeader('Content-Type', 'application/json');
                     res.end(JSON.stringify({ success: true }));
