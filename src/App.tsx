@@ -36,6 +36,18 @@ export default function App() {
     });
   };
 
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    return localStorage.getItem('pillapp-notifications') !== 'false';
+  });
+
+  const toggleNotifications = () => {
+    setNotificationsEnabled(prev => {
+      const newVal = !prev;
+      localStorage.setItem('pillapp-notifications', String(newVal));
+      return newVal;
+    });
+  };
+
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -54,6 +66,8 @@ export default function App() {
     if (!secretCode || pills.length === 0) return;
 
     const interval = setInterval(() => {
+      if (!notificationsEnabled) return;
+      
       const now = new Date();
       const currentHourMin = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       const todayStr = now.toISOString().split('T')[0];
@@ -94,6 +108,8 @@ export default function App() {
         secretCode={secretCode}
         loading={loading}
         syncing={syncing}
+        notificationsEnabled={notificationsEnabled}
+        onToggleNotifications={toggleNotifications}
       />
 
       {(isAddModalOpen || editingPill) && (

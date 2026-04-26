@@ -42,6 +42,8 @@ interface DashboardProps {
   secretCode: string | null;
   loading: boolean;
   syncing: boolean;
+  notificationsEnabled: boolean;
+  onToggleNotifications: () => void;
 }
 
 export function Dashboard({ 
@@ -56,7 +58,9 @@ export function Dashboard({
   toggleDarkMode,
   secretCode,
   loading,
-  syncing
+  syncing,
+  notificationsEnabled,
+  onToggleNotifications
 }: DashboardProps) {
   const [activeView, setActiveView] = useState<'dashboard' | 'stock' | 'admin'>('dashboard');
   const [adminUsers, setAdminUsers] = useState<{code: string, name: string}[]>([]);
@@ -138,12 +142,17 @@ export function Dashboard({
     }
   }, []);
 
-  const requestNotificationPermission = async () => {
+  const handleNotificationClick = async () => {
     if ('Notification' in window) {
-      const permission = await Notification.requestPermission();
-      setNotifPerm(permission);
-      if (permission === 'granted') {
-        await subscribeToPush();
+      if (Notification.permission !== 'granted') {
+        const permission = await Notification.requestPermission();
+        setNotifPerm(permission);
+        if (permission === 'granted') {
+          await subscribeToPush();
+          if (!notificationsEnabled) onToggleNotifications();
+        }
+      } else {
+        onToggleNotifications();
       }
     }
   };
@@ -378,7 +387,9 @@ export function Dashboard({
               <Share2 size={20} />
             </button>
             <button onClick={toggleDarkMode} className={cn("p-2 border-2 rounded-xl transition-all", darkMode ? "bg-black border-orange-400 text-orange-400" : "bg-white border-black text-black")}>{darkMode ? <Sun size={20} /> : <Moon size={20} />}</button>
-            <button onClick={requestNotificationPermission} className={cn("p-2 border-2 rounded-xl transition-all", darkMode ? "bg-black border-orange-400 text-orange-400" : "bg-white border-black text-black")}>{notifPerm === 'granted' ? <Bell size={20} /> : <BellOff size={20} />}</button>
+            <button onClick={handleNotificationClick} className={cn("p-2 border-2 rounded-xl transition-all", darkMode ? "bg-black border-orange-400 text-orange-400" : "bg-white border-black text-black")}>
+              {notificationsEnabled && notifPerm === 'granted' ? <Bell size={20} /> : <BellOff size={20} />}
+            </button>
             <button onClick={onLogout} className={cn("p-2 border-2 rounded-xl transition-all", darkMode ? "bg-black border-orange-400 text-orange-400" : "bg-white border-black text-black")}><LogOut size={20} /></button>
           </div>
         </div>
