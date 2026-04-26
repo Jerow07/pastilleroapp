@@ -10,7 +10,7 @@ interface AddPillModalProps {
   pill?: Pill; // Si viene una pill, estamos editando
 }
 
-const EMOJIS = ['💊', '🧪', '💉', '🧴', '💨', '💧'];
+const EMOJIS = ['💊', '🧪', '💉', '🧴'];
 const COLORS = [
   'bg-orange-300', 
   'bg-blue-300', 
