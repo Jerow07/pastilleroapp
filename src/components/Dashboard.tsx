@@ -446,20 +446,6 @@ export function Dashboard({
           ref={scrollContainerRef}
           className="flex-1 overflow-y-auto overflow-x-hidden px-4 pt-4 pb-32 custom-scrollbar relative"
         >
-          {/* Floating Scroll Button (Desktop Only) */}
-          <button 
-            onClick={scrollDown}
-            className={cn(
-              "hidden md:flex fixed bottom-24 right-[calc(50%-180px)] z-50 p-3 rounded-full border-2 shadow-2xl transition-all active:scale-95 animate-bounce",
-              darkMode 
-                ? "bg-orange-300 border-white text-black shadow-orange-500/20" 
-                : "bg-orange-400 border-orange-100 text-white shadow-orange-400/30"
-            )}
-            title="Bajar"
-          >
-            <ChevronDown size={24} strokeWidth={3} />
-          </button>
-
           {/* Main */}
           <main className="max-w-md mx-auto space-y-6">
         {isAdmin && activeView === 'admin' ? (
@@ -758,6 +744,20 @@ export function Dashboard({
         </button>
           </footer>
         </div>
+
+        {/* Floating Scroll Button (Desktop Only) */}
+        <button 
+          onClick={scrollDown}
+          className={cn(
+            "hidden md:flex absolute bottom-24 right-4 z-50 p-3 rounded-full border-2 shadow-2xl transition-all active:scale-95 animate-bounce",
+            darkMode 
+              ? "bg-orange-300 border-white text-black shadow-orange-500/20" 
+              : "bg-orange-400 border-orange-100 text-white shadow-orange-400/30"
+          )}
+          title="Bajar"
+        >
+          <ChevronDown size={24} strokeWidth={3} />
+        </button>
 
         {/* Nav */}
         <nav className={cn(
