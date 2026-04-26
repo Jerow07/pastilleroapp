@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "prebuild": "echo BUILD VERSION: v1.6.2 (16:10)",
     "dev": "vite",
     "postinstall": "npm install vite@^6.0.1",
     "build": "tsc -b && vite build",
