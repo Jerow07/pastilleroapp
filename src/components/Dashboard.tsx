@@ -324,7 +324,7 @@ export default function Dashboard({
                 {activeView === 'dashboard' ? 'Mi Pastillero' : (activeView === 'stock' ? 'El Baúl' : 'Gestión')}
               </h1>
               <div className="flex flex-col ml-1 gap-1">
-                <span className="text-[8px] font-black uppercase tracking-widest leading-none text-red-500 animate-pulse">v1.7.5 (NUEVO)</span>
+                <span className="text-[8px] font-black opacity-30 uppercase tracking-widest leading-none">v1.7.5</span>
                 
                 {/* Sync Indicator */}
                 <div 
