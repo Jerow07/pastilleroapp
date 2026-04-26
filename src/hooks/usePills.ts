@@ -7,74 +7,77 @@ export function usePills() {
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
 
-  // Cargar inicial y sincronizar
+  const loadAndSync = useCallback(async (code: string) => {
+    if (!code) return;
+    setLoading(true);
+    
+    let localPills: Pill[] = [];
+    const saved = localStorage.getItem(`pillapp_pills_${code}`);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) localPills = parsed;
+      } catch (e) {}
+    }
+    setPills(localPills);
+
+    try {
+      const res = await fetch(`/api/pills?user=${code}`);
+      if (res.ok) {
+        const cloudData = await res.json();
+        if (Array.isArray(cloudData)) {
+          const mergedMap = new Map<string, Pill>();
+          localPills.forEach(p => mergedMap.set(p.id, p));
+          
+          cloudData.forEach(p => {
+            const existing = mergedMap.get(p.id);
+            if (!existing) {
+              mergedMap.set(p.id, p);
+            } else {
+              const localTime = new Date(existing.updatedAt || existing.createdAt || 0).getTime() || 0;
+              const cloudTime = new Date(p.updatedAt || p.createdAt || 0).getTime() || 0;
+              
+              if (cloudTime > localTime) {
+                mergedMap.set(p.id, p);
+              } else if (cloudTime === localTime && (p.takenDates?.length || 0) > (existing.takenDates?.length || 0)) {
+                mergedMap.set(p.id, p);
+              }
+            }
+          });
+
+          const mergedPills = Array.from(mergedMap.values());
+          setPills(mergedPills);
+          localStorage.setItem(`pillapp_pills_${code}`, JSON.stringify(mergedPills));
+
+          await fetch('/api/pills', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user: code, pills: mergedPills }),
+          });
+        }
+      }
+    } catch (err) {
+      console.error('[Sync] Error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Cargar inicial
   useEffect(() => {
     const rawCode = localStorage.getItem('pillapp_secret');
     if (rawCode) {
       const code = rawCode.trim().toLowerCase();
       setSecretCode(code);
-      
-      const loadAndSync = async () => {
-        setLoading(true);
-        
-        let localPills: Pill[] = [];
-        const saved = localStorage.getItem(`pillapp_pills_${code}`);
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed)) localPills = parsed;
-          } catch (e) {}
-        }
-        setPills(localPills);
-
-        try {
-          const res = await fetch(`/api/pills?user=${code}`);
-          if (res.ok) {
-            const cloudData = await res.json();
-            if (Array.isArray(cloudData)) {
-              const mergedMap = new Map<string, Pill>();
-              
-              // Cargar ambos en el mapa y comparar updatedAt
-              localPills.forEach(p => mergedMap.set(p.id, p));
-              
-              cloudData.forEach(p => {
-                const existing = mergedMap.get(p.id);
-                if (!existing) {
-                  mergedMap.set(p.id, p);
-                } else {
-                  // Si la nube tiene una versión más nueva (o igual con más datos), la nube manda
-                  const localTime = new Date(existing.updatedAt || existing.createdAt || 0).getTime();
-                  const cloudTime = new Date(p.updatedAt || p.createdAt || 0).getTime();
-                  
-                  if (cloudTime > localTime) {
-                    mergedMap.set(p.id, p);
-                  } else if (cloudTime === localTime && p.takenDates.length > existing.takenDates.length) {
-                    mergedMap.set(p.id, p);
-                  }
-                }
-              });
-
-              const mergedPills = Array.from(mergedMap.values());
-              setPills(mergedPills);
-              localStorage.setItem(`pillapp_pills_${code}`, JSON.stringify(mergedPills));
-
-              // Sincronizar hacia arriba si hubo cambios
-              await fetch('/api/pills', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user: code, pills: mergedPills }),
-              });
-            }
-          }
-        } catch (err) {
-          console.error('[Sync] Error:', err);
-        } finally {
-          setLoading(false);
-        }
-      };
-      loadAndSync();
+      loadAndSync(code);
     }
-  }, [secretCode]);
+  }, [loadAndSync]);
+
+  const refresh = useCallback(() => {
+    if (secretCode) {
+      loadAndSync(secretCode);
+    }
+  }, [secretCode, loadAndSync]);
 
   const saveSecretCode = (code: string, name?: string) => {
     const normalizedCode = code.trim().toLowerCase();
@@ -187,15 +190,7 @@ export function usePills() {
       clearInterval(interval);
       window.removeEventListener('focus', handleFocus);
     };
-  }, [secretCode]);
-
-  const refresh = useCallback(() => {
-    const code = localStorage.getItem('pillapp_secret');
-    if (code) {
-      setSecretCode(null);
-      setTimeout(() => setSecretCode(code.trim().toLowerCase()), 10);
-    }
-  }, []);
+  }, [secretCode, refresh]);
 
   return {
     secretCode,
