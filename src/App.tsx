@@ -1,3 +1,4 @@
+// Vercel deployment trigger with corrected git author
 import { useState, useEffect } from 'react';
 import type { Pill } from './lib/types';
 import { AuthScreen } from './components/AuthScreen';
