@@ -51,30 +51,41 @@ export default async function handler(req: any, res: any) {
     for (const user of users) {
       const pillsKey = `pillapp:user:${user}:pills`;
       const rawPills = await redis.get(pillsKey);
-      if (!rawPills) continue;
+      if (!rawPills) {
+        console.log(`[Cron] Usuario ${user} sin pastillas`);
+        continue;
+      }
 
       const pills = JSON.parse(rawPills);
+      console.log(`[Cron] Revisando ${pills.length} pastillas de ${user}`);
       
       for (const p of pills) {
         // Verificar si toca hoy y no está borrada
         const isScheduledToday = !p.frequency || p.frequency === 'daily' || (p.frequency === 'specific_days' && p.selectedDays?.includes(dayOfWeek));
-        if (!isScheduledToday || p.deleted) continue;
+        if (!isScheduledToday || p.deleted) {
+          if (p.deleted) console.log(`[Cron] Pastilla ${p.name} borrada, saltando`);
+          continue;
+        }
 
-        // Verificar si algún horario de la pastilla cae en nuestra ventana de 5 minutos
         const times = p.times && p.times.length > 0 ? p.times : [p.time];
         const dueTime = times.find((t: string) => checkMinutes.includes(t));
+        
+        console.log(`[Cron] Pastilla ${p.name} (Horarios: ${times.join(',')}). ¿En ventana?: ${dueTime ? 'SÍ' : 'NO'}`);
 
         if (dueTime) {
-          // 3. EVITAR DUPLICADOS: Usar una llave en Redis que expire en 10 min
           const lockKey = `pillapp:notified:${user}:${p.id}:${dateStr}:${dueTime}`;
           const alreadyNotified = await redis.get(lockKey);
           
           if (!alreadyNotified) {
             const subKey = `pillapp:user:${user}:subscriptions`;
             const rawSubs = await redis.get(subKey);
-            if (!rawSubs) continue;
+            if (!rawSubs) {
+              console.log(`[Cron] Usuario ${user} sin suscripciones activas`);
+              continue;
+            }
 
             const subs = JSON.parse(rawSubs);
+            console.log(`[Cron] Enviando ${subs.length} push a ${user} por ${p.name}`);
             const payload = JSON.stringify({
               title: `⏰ ¡Hora de tu ${p.name}!`,
               body: `Te toca tomar ${p.dose || 'tu dosis'}. ¡No te olvides!`,
@@ -87,11 +98,12 @@ export default async function handler(req: any, res: any) {
                 await webpush.sendNotification(sub, payload);
                 notificationsSent++;
               } catch (err: any) {
-                // Limpieza de subs inválidas opcional
+                console.error(`[Cron] Error enviando a sub de ${user}:`, err.statusCode);
               }
             }
-            // Marcar como notificado
             await redis.set(lockKey, 'true', 'EX', 600); 
+          } else {
+            console.log(`[Cron] Ya notificado: ${p.name} a las ${dueTime}`);
           }
         }
       }
