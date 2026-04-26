@@ -40,7 +40,10 @@ export default async function handler(req: any, res: any) {
           icon: '/pwa-192x192.png',
           badge: '/pwa-192x192.png',
           data: { url: '/' }
-        }));
+        }), {
+          urgency: 'high',
+          TTL: 60 * 60 // 1 hora
+        });
         sent++;
       } catch (err) {
         console.error('Error sending test push:', err);
