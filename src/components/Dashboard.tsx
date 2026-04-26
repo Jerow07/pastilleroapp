@@ -266,13 +266,13 @@ export function Dashboard({
 
   return (
     <div className={cn(
-      "min-h-screen font-sans flex flex-col items-center justify-start md:justify-center p-4 md:p-8 overflow-x-hidden",
+      "min-h-screen font-sans flex flex-col items-center justify-start p-4 md:p-8 overflow-x-hidden",
       "bg-[url('/bg.png')] bg-cover bg-center bg-fixed"
     )}>
       {/* Recuadro de la App - Estilo Redondeado Premium */}
       <div className={cn(
-        "w-full max-w-md min-h-[90vh] md:max-h-[90vh] md:h-[850px] p-4 pb-32 flex flex-col relative transition-all duration-500 shadow-[0_0_80px_rgba(0,0,0,0.4)] z-10",
-        "rounded-[3rem] border-4 border-white/20 overflow-y-auto overflow-x-hidden custom-scrollbar",
+        "w-full max-w-md min-h-screen p-4 pb-32 flex flex-col relative transition-all duration-500 shadow-[0_0_80px_rgba(0,0,0,0.4)] z-10",
+        "rounded-[3rem] border-4 border-white/20",
         darkMode ? "bg-[#0c141d]/95 text-white" : "bg-[#f0f9ff]/95 text-slate-900"
       )}>
         {/* Header */}
@@ -706,7 +706,7 @@ export function Dashboard({
 
       {/* Nav */}
       <nav className={cn(
-        "fixed md:absolute bottom-6 left-1/2 -translate-x-1/2 border-2 rounded-full p-2 flex gap-4 z-30 transition-all",
+        "fixed bottom-6 left-1/2 -translate-x-1/2 border-2 rounded-full p-2 flex gap-4 z-30 transition-all",
         darkMode 
           ? "bg-black/80 backdrop-blur-md border-orange-300 shadow-[0_0_20px_rgba(253,186,116,0.3)]" 
           : "bg-white/80 backdrop-blur-md border-orange-100 shadow-[0_10px_30px_rgba(253,186,116,0.4)]"
