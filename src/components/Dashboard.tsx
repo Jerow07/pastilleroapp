@@ -446,16 +446,16 @@ export function Dashboard({
               const isTaken = pill.takenDates.includes(dateStr);
               return (
                 <div key={pill.id} onClick={() => handleToggle(pill.id)} className={cn(
-                  "relative p-5 border-2 rounded-[2.5rem] transition-all cursor-pointer",
+                  "relative px-4 py-4 border-2 rounded-[2rem] transition-all cursor-pointer",
                   isTaken 
                     ? "opacity-30 scale-95" 
                     : (darkMode 
                         ? "bg-[#1A1A1A] border-cyan-500 shadow-[0_0_15px_rgba(34,211,238,0.15)] hover:shadow-[0_0_25px_rgba(34,211,238,0.3)]" 
                         : "bg-white border-blue-100 shadow-[0_4px_20px_rgba(186,230,253,0.3)] hover:shadow-[0_10px_30px_rgba(186,230,253,0.5)]")
                 )}>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     <div className={cn(
-                      "text-4xl border-2 p-3 rounded-2xl transition-all",
+                      "text-3xl border-2 p-2.5 rounded-2xl transition-all flex-shrink-0",
                       darkMode ? "bg-black border-cyan-900" : "bg-blue-50 border-blue-100"
                     )}>{pill.emoji || '💊'}</div>
                     <div className="flex-1 min-w-0">
@@ -463,28 +463,28 @@ export function Dashboard({
                         "text-[10px] font-black uppercase opacity-60 flex items-center gap-1",
                         darkMode ? "text-cyan-400" : "text-blue-500"
                       )}><Clock size={10} /> {pill.time}</div>
-                      <h3 className={cn("text-2xl font-black truncate", !darkMode && "text-slate-800")}>{pill.name}</h3>
-                      <p className={cn("font-bold text-sm opacity-60 truncate", !darkMode && "text-slate-500")}>{pill.dose}</p>
+                      <h3 className={cn("text-xl font-black truncate", !darkMode && "text-slate-800")}>{pill.name}</h3>
+                      <p className={cn("font-bold text-xs opacity-60 truncate", !darkMode && "text-slate-500")}>{pill.dose}</p>
                       {pill.stockEnabled && (
                         <div className={cn(
-                          "mt-2 text-[10px] font-black px-2 py-0.5 rounded border-2 w-fit max-w-full truncate",
+                          "mt-1 text-[9px] font-black px-1.5 py-0.5 rounded border-2 w-fit max-w-full truncate",
                           pill.totalStock! <= (pill.quantityPerDose || 1) * 3 ? "bg-red-500 text-white border-white animate-pulse" : "bg-black/5 border-black/10 text-gray-500"
                         )}>
-                          BAÚL: {pill.totalStock} {pill.unit} {pill.totalStock! <= (pill.quantityPerDose || 1) * 3 && "— ¡COMPRAR! ⚠️"}
+                          {pill.totalStock} {pill.unit} {pill.totalStock! <= (pill.quantityPerDose || 1) * 3 && "— ¡COMPRAR! ⚠️"}
                         </div>
                       )}
                     </div>
-                    <div className="flex flex-col items-center gap-2">
-                      <div className={cn("w-12 h-12 rounded-full border-2 flex items-center justify-center", isTaken ? "bg-green-400 border-black" : "bg-white border-black")}>
-                        {isTaken && <Check size={28} strokeWidth={4} />}
+                    <div className="flex flex-col items-center gap-2 flex-shrink-0">
+                      <div className={cn("w-10 h-10 rounded-full border-2 flex items-center justify-center", isTaken ? "bg-green-400 border-black" : "bg-white border-black")}>
+                        {isTaken && <Check size={24} strokeWidth={4} />}
                       </div>
                       {!isTaken && (
-                        <div className="flex gap-2">
-                          <button onClick={(e) => { e.stopPropagation(); onEditPill(pill); }} className="p-2 border-2 rounded-xl bg-white border-black shadow-[2px_2px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"><Edit2 size={16} /></button>
+                        <div className="flex gap-1.5">
+                          <button onClick={(e) => { e.stopPropagation(); onEditPill(pill); }} className="p-1.5 border-2 rounded-lg bg-white border-black shadow-[1px_1px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"><Edit2 size={14} /></button>
                           <button onClick={(e) => { 
                             e.stopPropagation(); 
                             setPillToDelete(pill);
-                          }} className="p-2 border-2 rounded-xl bg-white border-black text-red-600 shadow-[2px_2px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"><Trash2 size={16} /></button>
+                          }} className="p-1.5 border-2 rounded-lg bg-white border-black text-red-600 shadow-[1px_1px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"><Trash2 size={14} /></button>
                         </div>
                       )}
                     </div>
