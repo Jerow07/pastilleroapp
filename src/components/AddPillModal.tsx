@@ -119,7 +119,7 @@ export function AddPillModal({ onSave, onClose, darkMode, pill }: AddPillModalPr
           </button>
         </div>
 
-        <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+        <div className="p-6 space-y-6 max-h-[65vh] overflow-y-auto pb-20">
           <div className="flex flex-col gap-4">
             <div className="flex justify-center mb-2">
               <div className={cn(
@@ -165,23 +165,7 @@ export function AddPillModal({ onSave, onClose, darkMode, pill }: AddPillModalPr
               />
             </div>
 
-            <div>
-              <label className={cn("block text-xs font-black uppercase mb-1 ml-1", darkMode ? "text-orange-300" : "text-sky-600")}>Dosis / Cantidad</label>
-              <input
-                type="text"
-                value={dose}
-                onChange={(e) => setDose(e.target.value)}
-                placeholder="Ej: 1 cápsula, 5ml..."
-                className={cn(
-                  "w-full px-4 py-4 border-2 rounded-2xl font-bold focus:outline-none transition-all",
-                  darkMode 
-                    ? "bg-[#1c2e3f] border-orange-900 text-white focus:border-orange-300 placeholder:text-gray-700" 
-                    : "bg-orange-50/50 border-orange-100 text-slate-800 placeholder:text-orange-200 focus:border-orange-300"
-                )}
-              />
-            </div>
-
-            <div className="space-y-4">
+            <div className="p-4 border-2 rounded-[2rem] bg-black/5 space-y-4">
               <label className={cn("block text-xs font-black uppercase mb-1 ml-1 flex items-center gap-1", darkMode ? "text-orange-300" : "text-sky-600")}>
                 <Clock size={12} strokeWidth={3} /> Horarios de toma
               </label>
@@ -194,7 +178,7 @@ export function AddPillModal({ onSave, onClose, darkMode, pill }: AddPillModalPr
                       onChange={(e) => updateTime(i, e.target.value)}
                       className={cn(
                         "flex-1 px-4 py-3 border-2 rounded-2xl font-black focus:outline-none transition-all",
-                        darkMode ? "bg-[#1c2e3f] border-orange-900 text-white focus:border-orange-300" : "bg-orange-50/50 border-orange-100 text-slate-800"
+                        darkMode ? "bg-[#1c2e3f] border-orange-900 text-white focus:border-orange-300" : "bg-white border-orange-100 text-slate-800 shadow-sm"
                       )}
                     />
                     {times.length > 1 && (
@@ -213,13 +197,29 @@ export function AddPillModal({ onSave, onClose, darkMode, pill }: AddPillModalPr
                 <button 
                   onClick={addTime}
                   className={cn(
-                    "w-full py-3 border-2 border-dashed rounded-2xl font-black uppercase text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95",
-                    darkMode ? "bg-orange-300/5 border-orange-300/30 text-orange-300" : "bg-orange-50 border-orange-200 text-orange-500"
+                    "w-full py-4 border-2 border-dashed rounded-2xl font-black uppercase text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 mt-2",
+                    darkMode ? "bg-orange-300/10 border-orange-300 text-orange-300" : "bg-orange-100 border-orange-400 text-orange-600 shadow-sm"
                   )}
                 >
-                  <Plus size={14} strokeWidth={3} /> Agregar otro horario
+                  <Plus size={16} strokeWidth={4} /> AGREGAR OTRO HORARIO
                 </button>
               </div>
+            </div>
+
+            <div>
+              <label className={cn("block text-xs font-black uppercase mb-1 ml-1", darkMode ? "text-orange-300" : "text-sky-600")}>Dosis / Cantidad</label>
+              <input
+                type="text"
+                value={dose}
+                onChange={(e) => setDose(e.target.value)}
+                placeholder="Ej: 1 cápsula, 5ml..."
+                className={cn(
+                  "w-full px-4 py-4 border-2 rounded-2xl font-bold focus:outline-none transition-all",
+                  darkMode 
+                    ? "bg-[#1c2e3f] border-orange-900 text-white focus:border-orange-300 placeholder:text-gray-700" 
+                    : "bg-orange-50/50 border-orange-100 text-slate-800 placeholder:text-orange-200 focus:border-orange-300"
+                )}
+              />
             </div>
 
             <div>
