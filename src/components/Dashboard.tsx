@@ -154,6 +154,10 @@ export function Dashboard({
           if (!notificationsEnabled) onToggleNotifications();
         }
       } else {
+        // Aunque ya tenga permiso, intentamos suscribir de nuevo para asegurar que el server tenga la sub
+        if (!notificationsEnabled) {
+          await subscribeToPush();
+        }
         onToggleNotifications();
       }
     }
