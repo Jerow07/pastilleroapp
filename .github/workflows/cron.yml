@@ -10,5 +10,5 @@ jobs:
     steps:
       - name: Ping Cron API
         run: |
-          curl -X GET "https://pastilleroapp-git-main-jeronimo-s-projects-101430f9.vercel.app/api/cron-notifications"
+          curl -X GET "https://pastilleroapp.vercel.app/api/cron-notifications"
 
