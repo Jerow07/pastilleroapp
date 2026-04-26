@@ -457,6 +457,10 @@ export default function Dashboard({
                     onClick={async () => {
                       const secret = localStorage.getItem('pillapp_secret');
                       if (!secret) return;
+                      
+                      // Forzamos la suscripción antes de probar
+                      await subscribeToPush();
+                      
                       const res = await fetch('/api/test-push', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
