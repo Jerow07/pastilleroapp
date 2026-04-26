@@ -289,7 +289,6 @@ export function Dashboard({
               </h1>
               <div className="flex flex-col ml-1">
                 <span className="text-[8px] font-black opacity-30 uppercase tracking-widest leading-none">v1.5.0</span>
-                <span className={cn("text-[10px] font-bold opacity-60 font-mono", darkMode ? "text-orange-200" : "text-sky-800")}>{secretCode}</span>
               </div>
               
               {/* Sync Indicator */}
