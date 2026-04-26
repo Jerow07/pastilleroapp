@@ -48,7 +48,7 @@ interface DashboardProps {
   onRefresh: () => void;
 }
 
-export function Dashboard({ 
+export default function Dashboard({ 
   pills, 
   onTogglePill, 
   onLogout, 
