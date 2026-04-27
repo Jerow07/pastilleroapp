@@ -68,6 +68,7 @@ export function CalendarModal({ selectedDate, onSelectDate, onClose, darkMode, p
 
     // 2. Verificamos si TODAS las tomas de esas pastillas están marcadas
     return dayScheduledPills.every(p => {
+      if (!p.takenDates || !Array.isArray(p.takenDates)) return false;
       const times = p.times && p.times.length > 0 ? p.times : [p.time];
       return times.every(t => p.takenDates.includes(`${dayStr}|${t}`));
     });
