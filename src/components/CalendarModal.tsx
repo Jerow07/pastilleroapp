@@ -45,20 +45,20 @@ export function CalendarModal({ selectedDate, onSelectDate, onClose, darkMode, p
 
   const weekDays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
-  // Función de éxito total: El día es verde SOLO si se tomaron TODAS las pastillas programadas.
-  const isDayCompleted = (day: Date) => {
-    if (!pills || pills.length === 0) return false;
-    const dayStr = format(day, 'yyyy-MM-dd');
-    const dw = getDay(day);
+  // Función para obtener qué pastillas tocan un día específico (unificada)
+  const getScheduledPillsForDay = (d: Date) => {
+    if (!pills) return [];
+    const dw = getDay(d);
+    const dStr = format(d, 'yyyy-MM-dd');
+    const dayStart = startOfDay(d);
     
-    // 1. Buscamos qué pastillas te tocaban ese día
-    const dayScheduledPills = pills.filter(p => {
+    return pills.filter(p => {
       if (p.deleted || !p.name) return false;
       
       // Solo contar si la pastilla ya existía en esa fecha
       if (p.createdAt) {
         const pCreated = startOfDay(new Date(p.createdAt));
-        if (startOfDay(day) < pCreated) return false;
+        if (dayStart < pCreated) return false;
       }
 
       const isS = !p.frequency || p.frequency === 'daily' || (p.frequency === 'specific_days' && p.selectedDays?.includes(dw));
@@ -68,16 +68,18 @@ export function CalendarModal({ selectedDate, onSelectDate, onClose, darkMode, p
       const times = p.times && p.times.length > 0 ? p.times : [p.time];
       if (times.length === 0 || (times.length === 1 && !times[0])) return false;
 
-      // Si no hay stock y no la tomó, no la contamos como "obligatoria" para completar el día
-      if (p.stockEnabled && (p.totalStock || 0) <= 0 && !p.takenDates?.some(td => td.startsWith(dayStr))) return false;
+      // Si no hay stock y no la tomó, no la contamos para ese día
+      if (p.stockEnabled && (p.totalStock || 0) <= 0 && !p.takenDates?.some(td => td.startsWith(dStr))) return false;
       
       return true;
     });
+  };
 
-    // Si no había nada programado, no puede estar "completado"
+  const isDayCompleted = (day: Date) => {
+    const dayScheduledPills = getScheduledPillsForDay(day);
     if (dayScheduledPills.length === 0) return false;
+    const dayStr = format(day, 'yyyy-MM-dd');
 
-    // 2. Verificamos si TODAS las tomas de esas pastillas están marcadas
     return dayScheduledPills.every(p => {
       if (!p.takenDates || !Array.isArray(p.takenDates)) return false;
       const times = p.times && p.times.length > 0 ? p.times : [p.time];
@@ -148,10 +150,12 @@ export function CalendarModal({ selectedDate, onSelectDate, onClose, darkMode, p
               // Determinar si el día está "fallado"
               const isPast = startOfDay(day) < startOfDay(new Date());
               const completed = isDayCompleted(day);
+              const scheduledPills = getScheduledPillsForDay(day);
+              const isScheduled = scheduledPills.length > 0;
               
               const failed = (() => {
                 if (completed) return false;
-                if (!isDayScheduled(day)) return false;
+                if (!isScheduled) return false;
                 
                 // Si es pasado y no está completado -> FALLO
                 if (isPast) return true;
@@ -160,43 +164,17 @@ export function CalendarModal({ selectedDate, onSelectDate, onClose, darkMode, p
                 if (today) {
                   const now = new Date();
                   const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-                  const dw = getDay(day);
                   const dayStr = format(day, 'yyyy-MM-dd');
-                  const todayStart = startOfDay(new Date());
                   
-                  return pills?.some(p => {
-                    // Si no tiene createdAt, asumimos hoy
-                    const pCreated = p.createdAt ? startOfDay(new Date(p.createdAt)) : todayStart;
-                    if (startOfDay(day) < pCreated) return false;
-
-                    const isS = !p.frequency || p.frequency === 'daily' || (p.frequency === 'specific_days' && p.selectedDays?.includes(dw));
-                    if (!isS) return false;
-                    // Si ya se pasó la hora y no la tomó -> FALLO
-                    return p.time < currentTime && !p.takenDates?.includes(dayStr);
+                  return scheduledPills.some(p => {
+                    const times = p.times && p.times.length > 0 ? p.times : [p.time];
+                    // Si alguna toma de esta pastilla ya se pasó de hora y no fue tomada -> FALLO
+                    return times.some(t => t < currentTime && !p.takenDates?.includes(`${dayStr}|${t}`));
                   });
                 }
                 
                 return false;
               })();
-
-              function isDayScheduled(d: Date) {
-                if (!pills) return false;
-                const dw = getDay(d);
-                const dStr = format(d, 'yyyy-MM-dd');
-                const todayStart = startOfDay(new Date());
-                
-                return pills.some(p => {
-                  // Si no tiene createdAt, asumimos hoy
-                  const pCreated = p.createdAt ? startOfDay(new Date(p.createdAt)) : todayStart;
-                  if (startOfDay(d) < pCreated) return false;
-
-                  const isS = !p.frequency || p.frequency === 'daily' || (p.frequency === 'specific_days' && p.selectedDays?.includes(dw));
-                  if (!isS) return false;
-                  // Si no hay stock y no la tomó, no cuenta
-                  if (p.stockEnabled && (p.totalStock || 0) <= 0 && !p.takenDates?.includes(dStr)) return false;
-                  return true;
-                });
-              }
 
               return (
                 <button
