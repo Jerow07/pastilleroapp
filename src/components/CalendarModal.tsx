@@ -53,10 +53,21 @@ export function CalendarModal({ selectedDate, onSelectDate, onClose, darkMode, p
     
     // 1. Buscamos qué pastillas te tocaban ese día
     const dayScheduledPills = pills.filter(p => {
-      if (p.deleted) return false;
+      if (p.deleted || !p.name) return false;
+      
+      // Solo contar si la pastilla ya existía en esa fecha
+      if (p.createdAt) {
+        const pCreated = startOfDay(new Date(p.createdAt));
+        if (startOfDay(day) < pCreated) return false;
+      }
+
       const isS = !p.frequency || p.frequency === 'daily' || (p.frequency === 'specific_days' && p.selectedDays?.includes(dw));
       if (!isS) return false;
       
+      // Si no tiene horario definido, la ignoramos
+      const times = p.times && p.times.length > 0 ? p.times : [p.time];
+      if (times.length === 0 || (times.length === 1 && !times[0])) return false;
+
       // Si no hay stock y no la tomó, no la contamos como "obligatoria" para completar el día
       if (p.stockEnabled && (p.totalStock || 0) <= 0 && !p.takenDates?.some(td => td.startsWith(dayStr))) return false;
       
