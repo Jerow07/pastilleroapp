@@ -45,13 +45,32 @@ export function CalendarModal({ selectedDate, onSelectDate, onClose, darkMode, p
 
   const weekDays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
-  // Función de éxito total: Si hay una toma, es verde.
+  // Función de éxito total: El día es verde SOLO si se tomaron TODAS las pastillas programadas.
   const isDayCompleted = (day: Date) => {
     if (!pills || pills.length === 0) return false;
     const dayStr = format(day, 'yyyy-MM-dd');
+    const dw = getDay(day);
     
-    // Si hay AL MENOS UNA pastilla marcada en esta fecha, el día es verde.
-    return pills.some(p => p.takenDates && p.takenDates.includes(dayStr));
+    // 1. Buscamos qué pastillas te tocaban ese día
+    const dayScheduledPills = pills.filter(p => {
+      if (p.deleted) return false;
+      const isS = !p.frequency || p.frequency === 'daily' || (p.frequency === 'specific_days' && p.selectedDays?.includes(dw));
+      if (!isS) return false;
+      
+      // Si no hay stock y no la tomó, no la contamos como "obligatoria" para completar el día
+      if (p.stockEnabled && (p.totalStock || 0) <= 0 && !p.takenDates?.some(td => td.startsWith(dayStr))) return false;
+      
+      return true;
+    });
+
+    // Si no había nada programado, no puede estar "completado"
+    if (dayScheduledPills.length === 0) return false;
+
+    // 2. Verificamos si TODAS las tomas de esas pastillas están marcadas
+    return dayScheduledPills.every(p => {
+      const times = p.times && p.times.length > 0 ? p.times : [p.time];
+      return times.every(t => p.takenDates.includes(`${dayStr}|${t}`));
+    });
   };
 
   return (
